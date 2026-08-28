@@ -183,7 +183,7 @@ export const LiveRecorder: React.FC = () => {
   return (
     <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
       {/* Top Banner / Hero Controls */}
-      <div className="rounded-2xl border border-theme bg-card-theme p-5 shadow-sm relative overflow-hidden transition-colors">
+      <div className="rounded-2xl border border-theme bg-card-theme p-5 shadow-sm relative transition-colors">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
           <div>
             <div className="flex items-center gap-2">

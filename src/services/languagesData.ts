@@ -10,7 +10,8 @@ export interface LanguageDefinition {
 }
 
 export const WORLD_LANGUAGES: LanguageDefinition[] = [
-  // South Asian & Regional
+  // Global Auto Detection & South Asian
+  { code: 'auto', name: 'Auto-Detect Language', nativeName: 'خودکار شناخت', flag: '🌐', dir: 'ltr', region: 'Global', bcp47: 'en-US', popular: true },
   { code: 'ur', name: 'Urdu (Native Nastaliq)', nativeName: 'اردو', flag: '🇵🇰', dir: 'rtl', region: 'South Asia', bcp47: 'ur-PK', popular: true },
   { code: 'ur-Latn', name: 'Roman Urdu (Latin Script)', nativeName: 'Roman Urdu', flag: '🇵🇰', dir: 'ltr', region: 'South Asia', bcp47: 'ur-Latn', popular: true },
   { code: 'code-switched', name: 'Code-Switched (Mixed EN/UR)', nativeName: 'Mixed اردو / English', flag: '🌐', dir: 'ltr', region: 'South Asia', popular: true, bcp47: 'en-US' },
