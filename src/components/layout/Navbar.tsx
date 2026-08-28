@@ -44,13 +44,8 @@ export const Navbar: React.FC = () => {
               if (e.target.value) setActiveTab('meeting-archive');
             }}
             placeholder="Search transcripts, Roman Urdu, action items..."
-            className="w-full rounded-xl border border-theme bg-input-theme py-1.5 pl-9 pr-14 text-xs text-theme-primary placeholder:text-theme-muted focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all"
+            className="w-full rounded-xl border border-theme bg-input-theme py-1.5 pl-9 pr-4 text-xs text-theme-primary placeholder:text-theme-muted focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm transition-all"
           />
-          <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
-            <kbd className="rounded-md border border-theme bg-card-subtle-theme px-1.5 py-0.5 text-[10px] text-theme-muted font-mono shadow-xs">
-              Ctrl+K
-            </kbd>
-          </div>
         </div>
       </div>
 
