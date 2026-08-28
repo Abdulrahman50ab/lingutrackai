@@ -4,8 +4,7 @@ import {
   Search, 
   Zap, 
   Globe2, 
-  ChevronDown,
-  Layers
+  ChevronDown
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { ThemeSwitcher } from '../common/ThemeSwitcher';
@@ -22,25 +21,14 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-theme bg-header-theme/95 px-4 sm:px-6 backdrop-blur-xl transition-colors select-none">
-      {/* Left: Brand Logo & Workspace Breadcrumb */}
-      <div className="flex items-center gap-3 shrink-0">
+      {/* Left: Brand Logo */}
+      <div className="flex items-center shrink-0">
         <div 
           className="cursor-pointer" 
           onClick={() => setActiveTab('record-upload')}
           title="LinguTrack AI Workspace"
         >
           <BrandLogo size="md" showSubtitle={false} animate />
-        </div>
-
-        <div className="hidden sm:block h-4 w-px bg-theme/40" />
-
-        {/* Workspace pill */}
-        <div className="hidden md:flex items-center gap-2 rounded-lg border border-theme bg-card-subtle-theme px-2.5 py-1 text-xs text-theme-secondary shadow-sm">
-          <Layers className="h-3.5 w-3.5 text-indigo-500" />
-          <span className="font-semibold text-theme-primary">{userProfile.organization}</span>
-          <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-            Live
-          </span>
         </div>
       </div>
 
