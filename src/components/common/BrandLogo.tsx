@@ -3,6 +3,7 @@ import React from 'react';
 interface BrandLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showText?: boolean;
+  showSubtitle?: boolean;
   className?: string;
   animate?: boolean;
 }
@@ -10,6 +11,7 @@ interface BrandLogoProps {
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   size = 'md',
   showText = true,
+  showSubtitle = true,
   className = '',
   animate = false,
 }) => {
@@ -82,13 +84,15 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
               AI
             </span>
           </div>
-          <p className={`text-theme-muted font-medium ${sub} flex items-center gap-1`}>
-            <span>English</span>
-            <span>•</span>
-            <span className="font-urdu text-emerald-600 dark:text-emerald-400">اردو</span>
-            <span>•</span>
-            <span>Roman Urdu</span>
-          </p>
+          {showSubtitle && (
+            <p className={`text-theme-muted font-medium ${sub} flex items-center gap-1`}>
+              <span>English</span>
+              <span>•</span>
+              <span className="font-urdu text-emerald-600 dark:text-emerald-400">اردو</span>
+              <span>•</span>
+              <span>Roman Urdu</span>
+            </p>
+          )}
         </div>
       )}
     </div>
