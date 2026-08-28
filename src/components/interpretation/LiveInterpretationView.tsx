@@ -149,7 +149,6 @@ export const LiveInterpretationView: React.FC = () => {
     const sourceLang = side === 'left' ? leftLang : rightLang;
     const targetLang = side === 'left' ? rightLang : leftLang;
     const sMeta = getLanguageByCode(sourceLang);
-    const tMeta = getLanguageByCode(targetLang);
 
     const startTime = performance.now();
     const { translated, roman } = await translateText(text, sourceLang, targetLang);
@@ -174,7 +173,7 @@ export const LiveInterpretationView: React.FC = () => {
     audioEngine.playNotificationChime(side === 'left' ? 523.25 : 659.25);
 
     if (isVoiceModeEnabled) {
-      ttsService.speak(translated, targetLang);
+      ttsService.speak(translated, targetLang, undefined, roman);
     }
   };
 
@@ -199,7 +198,7 @@ export const LiveInterpretationView: React.FC = () => {
       if (isRecordingRight) {
         setIsRecordingRight(false);
         audioEngine.stopRecording();
-        handleSendTurn('right', "تمام ٹیسٹ کامیابی سے مکمل ہو چکے ہیں۔");
+        handleSendTurn('right', "تمام ٹیم ممبرز کے ساتھ رپورٹ شیئر کر دی گئی ہے۔");
       } else {
         setIsRecordingRight(true);
         setIsRecordingLeft(false);
@@ -228,85 +227,86 @@ export const LiveInterpretationView: React.FC = () => {
   const rightPhrases = quickPhrasesByLanguage[rightLang] || quickPhrasesByLanguage.ur;
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden p-4 sm:p-6 space-y-4">
-      {/* Top Header Card with Universal Language Selectors */}
-      <div className="rounded-2xl border border-theme bg-card-theme p-4 sm:p-5 shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div className="flex-1 h-full min-h-0 flex flex-col overflow-hidden p-3 sm:p-4 space-y-2.5">
+      {/* Compact Streamlined Header Bar */}
+      <div className="rounded-2xl border border-theme bg-card-theme px-4 py-2.5 shadow-sm flex flex-wrap items-center justify-between gap-3 shrink-0">
+        {/* Left: Mode Title & Live Status */}
+        <div className="flex items-center gap-3">
+          <div className="p-1.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+            <Globe2 className="h-4 w-4" />
+          </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+              <h1 className="text-sm font-bold text-theme-primary leading-tight">
+                Live Universal Interpretation
+              </h1>
+              <span className="rounded-full bg-emerald-500/10 px-2 py-0.2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Sub-Second Neural Pipeline
               </span>
-              <span className="rounded-md bg-indigo-500/10 px-2 py-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center gap-1">
-                <Cpu className="h-3 w-3" />
-                50+ World Languages
-              </span>
             </div>
-            <h1 className="mt-2 text-xl font-bold tracking-tight text-theme-primary flex items-center gap-2">
-              <Globe2 className="h-5 w-5 text-indigo-500" />
-              Live Universal Interpretation Mode
-            </h1>
-            <p className="mt-0.5 text-xs text-theme-muted">
-              Bidirectional real-time cross-language speech translation & neural text-to-speech for remote calls.
+            <p className="text-[11px] text-theme-muted hidden sm:block">
+              Bidirectional real-time speech translation with Nastaliq & neural voice synthesis.
             </p>
           </div>
+        </div>
 
-          {/* Universal Language Pair Selectors & Voice Mode Toggle */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Language Pair Selector Bar */}
-            <div className="flex items-center gap-2 rounded-2xl border border-theme bg-card-subtle-theme p-1.5 shadow-inner">
-              <LanguageSelector
-                selectedCode={leftLang}
-                onChange={setLeftLang}
-                compact
-                buttonClassName="bg-card-theme border-indigo-500/30"
-              />
+        {/* Right: Language Pair Switcher, Latency & Voice Mode Toggle */}
+        <div className="flex items-center gap-2">
+          {/* Language Pair Selector Bar */}
+          <div className="flex items-center gap-1.5 rounded-xl border border-theme bg-card-subtle-theme p-1 shadow-xs">
+            <LanguageSelector
+              selectedCode={leftLang}
+              onChange={setLeftLang}
+              compact
+              buttonClassName="bg-card-theme border-indigo-500/30 py-1"
+            />
 
-              <button
-                type="button"
-                onClick={handleSwapLanguages}
-                className="rounded-xl p-2 text-theme-muted hover:text-indigo-600 hover:bg-card-theme transition-all border border-theme"
-                title="Swap translation languages"
-              >
-                <ArrowLeftRight className="h-3.5 w-3.5" />
-              </button>
-
-              <LanguageSelector
-                selectedCode={rightLang}
-                onChange={setRightLang}
-                compact
-                buttonClassName="bg-card-theme border-emerald-500/30"
-              />
-            </div>
-
-            {/* Real-time Latency Meter */}
-            <div className="flex items-center gap-1.5 rounded-xl border border-theme bg-card-subtle-theme px-3 py-2 text-xs">
-              <Activity className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-theme-muted">SLA:</span>
-              <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{currentLatency}s</span>
-            </div>
-
-            {/* Voice Mode Toggle */}
             <button
-              onClick={() => setIsVoiceModeEnabled(prev => !prev)}
-              className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-all ${
-                isVoiceModeEnabled
-                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30 shadow-sm'
-                  : 'bg-card-subtle-theme text-theme-muted border-theme'
-              }`}
+              type="button"
+              onClick={handleSwapLanguages}
+              className="rounded-lg p-1.5 text-theme-muted hover:text-indigo-600 hover:bg-card-theme transition-all border border-theme"
+              title="Swap languages"
             >
-              {isVoiceModeEnabled ? <Volume2 className="h-3.5 w-3.5 text-emerald-500" /> : <VolumeX className="h-3.5 w-3.5" />}
-              <span>{isVoiceModeEnabled ? 'Voice Mode: On' : 'Muted'}</span>
+              <ArrowLeftRight className="h-3 w-3" />
             </button>
+
+            <LanguageSelector
+              selectedCode={rightLang}
+              onChange={setRightLang}
+              compact
+              buttonClassName="bg-card-theme border-emerald-500/30 py-1"
+            />
           </div>
+
+          {/* Latency meter */}
+          <div className="hidden md:flex items-center gap-1 rounded-xl border border-theme bg-card-subtle-theme px-2 py-1 text-[11px]">
+            <Activity className="h-3 w-3 text-emerald-500" />
+            <span className="text-theme-muted">SLA:</span>
+            <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{currentLatency}s</span>
+          </div>
+
+          {/* Voice Mode Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsVoiceModeEnabled(prev => !prev)}
+            className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1 text-xs font-semibold transition-all shadow-xs ${
+              isVoiceModeEnabled
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30'
+                : 'bg-card-subtle-theme text-theme-muted border-theme'
+            }`}
+            title="Toggle Voice Mode TTS"
+          >
+            {isVoiceModeEnabled ? <Volume2 className="h-3.5 w-3.5 text-emerald-500" /> : <VolumeX className="h-3.5 w-3.5" />}
+            <span className="hidden sm:inline">{isVoiceModeEnabled ? 'Voice On' : 'Muted'}</span>
+          </button>
         </div>
       </div>
 
-      {/* Main Conversation Stream */}
+      {/* Spacious Main Chat Conversation Stream (Expanded to maximize screen area) */}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto rounded-2xl border border-theme bg-card-theme p-4 space-y-4 shadow-sm"
+        className="flex-1 min-h-0 overflow-y-auto rounded-2xl border border-theme bg-card-theme p-4 space-y-3.5 shadow-sm custom-scrollbar"
       >
         {turns.map((turn) => {
           const isLeft = turn.speakerType === 'left';
@@ -316,10 +316,11 @@ export const LiveInterpretationView: React.FC = () => {
           return (
             <div
               key={turn.id}
-              className={`flex flex-col ${isLeft ? 'items-start' : 'items-end'} max-w-2xl ${isLeft ? 'mr-auto' : 'ml-auto'}`}
+              className={`flex flex-col ${isLeft ? 'items-start mr-auto' : 'items-end ml-auto'} max-w-2xl w-full`}
             >
-              <div className="flex items-center gap-2 mb-1 px-1">
-                <span className="text-[11px] font-bold text-theme-secondary flex items-center gap-1">
+              {/* Message Header */}
+              <div className="flex items-center gap-2 mb-1 px-1 text-[11px]">
+                <span className="font-bold text-theme-secondary flex items-center gap-1">
                   <span>{sMeta.flag}</span>
                   <span>{turn.speakerName}</span>
                 </span>
@@ -328,33 +329,39 @@ export const LiveInterpretationView: React.FC = () => {
                 </span>
               </div>
 
+              {/* Message Bubble */}
               <div
-                className={`rounded-2xl p-4 shadow-sm border transition-all ${
+                className={`w-full rounded-2xl p-3.5 shadow-sm border transition-all ${
                   isLeft
-                    ? 'rounded-tl-sm bg-card-subtle-theme border-indigo-500/30'
-                    : 'rounded-tr-sm bg-card-subtle-theme border-emerald-500/30'
+                    ? 'rounded-tl-xs bg-card-subtle-theme/90 border-indigo-500/20'
+                    : 'rounded-tr-xs bg-card-subtle-theme/90 border-emerald-500/20'
                 }`}
               >
-                {/* Original Spoken Text */}
-                <div className="text-xs text-theme-muted font-medium mb-1.5 flex items-center justify-between gap-4">
+                {/* Spoken Text Row */}
+                <div className="text-[11px] text-theme-muted font-medium mb-1 flex items-center justify-between gap-2">
                   <span>Spoken ({sMeta.name}):</span>
                   <div className="flex items-center gap-1">
                     <button
+                      type="button"
                       onClick={() => handleReplayTurnAudio(turn)}
-                      className="text-theme-muted hover:text-theme-primary p-1"
+                      className="text-theme-muted hover:text-theme-primary p-1 rounded hover:bg-card-theme transition-colors"
                       title="Play translated audio"
+                      aria-label="Play translated audio"
                     >
-                      <Volume2 className="h-3.5 w-3.5" />
+                      <Volume2 className="h-3.5 w-3.5 text-indigo-500" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleCopy(turn.id, turn.translatedText)}
-                      className="text-theme-muted hover:text-theme-primary p-1"
-                      title="Copy translated caption"
+                      className="text-theme-muted hover:text-theme-primary p-1 rounded hover:bg-card-theme transition-colors"
+                      title="Copy translation"
+                      aria-label="Copy translated text"
                     >
                       {copiedId === turn.id ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                     </button>
                   </div>
                 </div>
+                
                 <p 
                   dir={sMeta.dir}
                   className={`text-sm ${sMeta.dir === 'rtl' ? 'urdu-text text-base text-emerald-700 dark:text-emerald-200' : 'text-theme-primary'}`}
@@ -362,8 +369,8 @@ export const LiveInterpretationView: React.FC = () => {
                   {turn.sourceText}
                 </p>
 
-                {/* Translated Result Card */}
-                <div className={`mt-3 rounded-xl p-3 border ${
+                {/* Live Translation Caption Sub-Card */}
+                <div className={`mt-2.5 rounded-xl p-2.5 border ${
                   isLeft ? 'bg-card-theme border-emerald-500/30' : 'bg-card-theme border-indigo-500/30'
                 }`}>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block mb-1 flex items-center gap-1">
@@ -373,9 +380,9 @@ export const LiveInterpretationView: React.FC = () => {
 
                   <p 
                     dir={tMeta.dir}
-                    className={`text-sm font-medium ${
+                    className={`text-sm font-semibold ${
                       tMeta.dir === 'rtl' 
-                        ? 'urdu-text text-lg text-emerald-700 dark:text-emerald-300' 
+                        ? 'urdu-text text-base text-emerald-700 dark:text-emerald-300' 
                         : 'text-indigo-700 dark:text-indigo-200'
                     }`}
                   >
@@ -383,7 +390,7 @@ export const LiveInterpretationView: React.FC = () => {
                   </p>
 
                   {turn.romanUrduText && (
-                    <p className="mt-1.5 text-xs text-cyan-700 dark:text-cyan-300 font-mono">
+                    <p className="mt-1 text-xs text-cyan-700 dark:text-cyan-300 font-mono">
                       <span className="text-[10px] text-theme-muted uppercase">Roman: </span>
                       {turn.romanUrduText}
                     </p>
@@ -395,31 +402,32 @@ export const LiveInterpretationView: React.FC = () => {
         })}
       </div>
 
-      {/* Dual Interactive Input Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Streamlined Dual-Speaker Input Dock (Compact Height) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 shrink-0">
         {/* Left Speaker Input */}
-        <div className="rounded-2xl border border-indigo-500/30 bg-card-theme p-3.5 space-y-2.5 shadow-sm">
+        <div className="rounded-2xl border border-indigo-500/30 bg-card-theme p-2.5 space-y-1.5 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm">{leftMeta.flag}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs">{leftMeta.flag}</span>
               <span className="text-xs font-bold text-indigo-600 dark:text-indigo-300">
                 {leftMeta.name} Input
               </span>
             </div>
             <button
+              type="button"
               onClick={() => handleToggleMic('left')}
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold transition-all ${
                 isRecordingLeft
                   ? 'bg-rose-600 text-white animate-pulse'
                   : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/20'
               }`}
             >
-              <Mic className="h-3.5 w-3.5" />
-              <span>{isRecordingLeft ? 'Listening...' : 'Push to Speak'}</span>
+              <Mic className="h-3 w-3" />
+              <span className="text-[11px]">{isRecordingLeft ? 'Listening...' : 'Push to Speak'}</span>
             </button>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-1.5">
             <input
               type="text"
               dir={leftMeta.dir}
@@ -427,26 +435,27 @@ export const LiveInterpretationView: React.FC = () => {
               onChange={(e) => setInputLeft(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendTurn('left')}
               placeholder={`Type in ${leftMeta.name} (${leftMeta.nativeName}) or use mic...`}
-              className="flex-1 rounded-xl border border-theme bg-input-theme px-3 py-2 text-xs text-theme-primary placeholder:text-theme-muted focus:border-indigo-500 focus:outline-none shadow-sm"
+              className="flex-1 rounded-xl border border-theme bg-input-theme px-3 py-1.5 text-xs text-theme-primary placeholder:text-theme-muted focus:border-indigo-500 focus:outline-none shadow-xs"
             />
             <button
               type="button"
               aria-label="Send Left Speaker Message"
               onClick={() => handleSendTurn('left')}
-              className="rounded-xl bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition-all flex items-center gap-1 shadow-sm"
+              className="rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-indigo-500 transition-all flex items-center gap-1 shadow-xs shrink-0"
             >
               <Send className="h-3.5 w-3.5" />
             </button>
           </div>
 
           {/* Quick Phrases */}
-          <div className="flex flex-wrap gap-1">
+          <div className="flex items-center gap-1 overflow-x-auto py-0.5 no-scrollbar">
             {leftPhrases.slice(0, 2).map((phrase, idx) => (
               <button
                 key={idx}
+                type="button"
                 dir={leftMeta.dir}
                 onClick={() => handleSendTurn('left', phrase)}
-                className="rounded-lg bg-card-subtle-theme px-2 py-0.5 text-[10px] text-theme-muted hover:text-theme-primary truncate max-w-[200px] border border-theme"
+                className="rounded-lg bg-card-subtle-theme px-2 py-0.5 text-[10px] text-theme-muted hover:text-theme-primary truncate max-w-[180px] border border-theme shrink-0"
               >
                 "{phrase}"
               </button>
@@ -455,28 +464,29 @@ export const LiveInterpretationView: React.FC = () => {
         </div>
 
         {/* Right Speaker Input */}
-        <div className="rounded-2xl border border-emerald-500/30 bg-card-theme p-3.5 space-y-2.5 shadow-sm">
+        <div className="rounded-2xl border border-emerald-500/30 bg-card-theme p-2.5 space-y-1.5 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm">{rightMeta.flag}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs">{rightMeta.flag}</span>
               <span className="text-xs font-bold text-emerald-600 dark:text-emerald-300">
                 {rightMeta.name} Input
               </span>
             </div>
             <button
+              type="button"
               onClick={() => handleToggleMic('right')}
-              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+              className={`flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold transition-all ${
                 isRecordingRight
                   ? 'bg-rose-600 text-white animate-pulse'
                   : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20'
               }`}
             >
-              <Mic className="h-3.5 w-3.5" />
-              <span>{isRecordingRight ? 'Listening...' : 'Push to Speak'}</span>
+              <Mic className="h-3 w-3" />
+              <span className="text-[11px]">{isRecordingRight ? 'Listening...' : 'Push to Speak'}</span>
             </button>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-1.5">
             <input
               type="text"
               dir={rightMeta.dir}
@@ -484,26 +494,27 @@ export const LiveInterpretationView: React.FC = () => {
               onChange={(e) => setInputRight(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendTurn('right')}
               placeholder={`Type in ${rightMeta.name} (${rightMeta.nativeName}) or use mic...`}
-              className="flex-1 rounded-xl border border-theme bg-input-theme px-3 py-2 text-xs text-theme-primary placeholder:text-theme-muted focus:border-emerald-500 focus:outline-none shadow-sm"
+              className="flex-1 rounded-xl border border-theme bg-input-theme px-3 py-1.5 text-xs text-theme-primary placeholder:text-theme-muted focus:border-emerald-500 focus:outline-none shadow-xs"
             />
             <button
               type="button"
               aria-label="Send Right Speaker Message"
               onClick={() => handleSendTurn('right')}
-              className="rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition-all flex items-center gap-1 shadow-sm"
+              className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-500 transition-all flex items-center gap-1 shadow-xs shrink-0"
             >
               <Send className="h-3.5 w-3.5" />
             </button>
           </div>
 
           {/* Quick Phrases */}
-          <div className="flex flex-wrap gap-1">
+          <div className="flex items-center gap-1 overflow-x-auto py-0.5 no-scrollbar">
             {rightPhrases.slice(0, 2).map((phrase, idx) => (
               <button
                 key={idx}
+                type="button"
                 dir={rightMeta.dir}
                 onClick={() => handleSendTurn('right', phrase)}
-                className="rounded-lg bg-card-subtle-theme px-2 py-0.5 text-[10px] text-theme-muted hover:text-theme-primary truncate max-w-[200px] border border-theme"
+                className="rounded-lg bg-card-subtle-theme px-2 py-0.5 text-[10px] text-theme-muted hover:text-theme-primary truncate max-w-[180px] border border-theme shrink-0"
               >
                 "{phrase}"
               </button>
