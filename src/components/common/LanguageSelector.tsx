@@ -21,6 +21,7 @@ interface LanguageSelectorProps {
   buttonClassName?: string;
   showFlag?: boolean;
   compact?: boolean;
+  align?: 'left' | 'right' | 'auto';
 }
 
 export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
@@ -31,13 +32,33 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   buttonClassName = '',
   showFlag = true,
   compact = false,
+  align = 'auto',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('all');
+  const [dropdownAlign, setDropdownAlign] = useState<'left' | 'right'>('left');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const selectedLang = getLanguageByCode(selectedCode);
+
+  useEffect(() => {
+    if (isOpen && dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      if (align === 'right') {
+        setDropdownAlign('right');
+      } else if (align === 'left') {
+        setDropdownAlign('left');
+      } else {
+        // Auto: detect if near right screen edge
+        if (rect.right + 340 > window.innerWidth || rect.left > window.innerWidth / 2) {
+          setDropdownAlign('right');
+        } else {
+          setDropdownAlign('left');
+        }
+      }
+    }
+  }, [isOpen, align]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -98,7 +119,9 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
 
       {/* Dropdown Modal Popover */}
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-1.5 w-80 sm:w-96 rounded-2xl border border-theme bg-card-theme p-3 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95">
+        <div className={`absolute top-full z-50 mt-1.5 w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-theme bg-card-theme p-3 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 ${
+          dropdownAlign === 'right' ? 'right-0' : 'left-0'
+        }`}>
           {/* Search Header */}
           <div className="relative mb-2.5">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-theme-muted" />

@@ -275,6 +275,7 @@ export const LiveInterpretationView: React.FC = () => {
               selectedCode={rightLang}
               onChange={setRightLang}
               compact
+              align="right"
               buttonClassName="bg-card-theme border-emerald-500/30 py-1"
             />
           </div>
