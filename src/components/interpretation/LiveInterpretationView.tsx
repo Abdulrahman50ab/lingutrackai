@@ -124,6 +124,7 @@ export const LiveInterpretationView: React.FC = () => {
   const [isRecordingRight, setIsRecordingRight] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [currentLatency, setCurrentLatency] = useState(1.18);
+  const [activePlayingKey, setActivePlayingKey] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -173,7 +174,8 @@ export const LiveInterpretationView: React.FC = () => {
     audioEngine.playNotificationChime(side === 'left' ? 523.25 : 659.25);
 
     if (isVoiceModeEnabled) {
-      ttsService.speak(translated, targetLang, undefined, roman);
+      setActivePlayingKey(`${newTurn.id}-target`);
+      ttsService.speak(translated, targetLang, () => setActivePlayingKey(null), roman);
     }
   };
 
@@ -219,8 +221,26 @@ export const LiveInterpretationView: React.FC = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleReplayTurnAudio = (turn: LiveInterpretationTurn) => {
-    ttsService.speak(turn.translatedText, turn.targetLanguage, undefined, turn.romanUrduText);
+  const handlePlaySourceAudio = (turn: LiveInterpretationTurn) => {
+    const key = `${turn.id}-source`;
+    if (activePlayingKey === key) {
+      ttsService.stop();
+      setActivePlayingKey(null);
+    } else {
+      setActivePlayingKey(key);
+      ttsService.speak(turn.sourceText, turn.sourceLanguage, () => setActivePlayingKey(null));
+    }
+  };
+
+  const handlePlayTranslatedAudio = (turn: LiveInterpretationTurn) => {
+    const key = `${turn.id}-target`;
+    if (activePlayingKey === key) {
+      ttsService.stop();
+      setActivePlayingKey(null);
+    } else {
+      setActivePlayingKey(key);
+      ttsService.speak(turn.translatedText, turn.targetLanguage, () => setActivePlayingKey(null), turn.romanUrduText);
+    }
   };
 
   const leftPhrases = quickPhrasesByLanguage[leftLang] || quickPhrasesByLanguage.en;
@@ -340,44 +360,77 @@ export const LiveInterpretationView: React.FC = () => {
               >
                 {/* Spoken Text Row */}
                 <div className="text-[11px] text-theme-muted font-medium mb-1 flex items-center justify-between gap-2">
-                  <span>Spoken ({sMeta.name}):</span>
+                  <span className="flex items-center gap-1 font-semibold text-theme-secondary">
+                    <span>{sMeta.flag}</span>
+                    <span>Spoken ({sMeta.name}):</span>
+                  </span>
                   <div className="flex items-center gap-1">
                     <button
                       type="button"
-                      onClick={() => handleReplayTurnAudio(turn)}
-                      className="text-theme-muted hover:text-theme-primary p-1 rounded hover:bg-card-theme transition-colors"
-                      title="Play translated audio"
-                      aria-label="Play translated audio"
+                      onClick={() => handlePlaySourceAudio(turn)}
+                      className={`p-1 rounded transition-colors ${
+                        activePlayingKey === `${turn.id}-source`
+                          ? 'bg-indigo-500/20 text-indigo-500 animate-pulse'
+                          : 'text-theme-muted hover:text-theme-primary hover:bg-card-theme'
+                      }`}
+                      title={`Listen to spoken ${sMeta.name} audio`}
+                      aria-label="Play spoken audio"
                     >
-                      <Volume2 className="h-3.5 w-3.5 text-indigo-500" />
+                      <Volume2 className="h-3.5 w-3.5" />
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleCopy(turn.id, turn.translatedText)}
+                      onClick={() => handleCopy(`${turn.id}-src`, turn.sourceText)}
                       className="text-theme-muted hover:text-theme-primary p-1 rounded hover:bg-card-theme transition-colors"
-                      title="Copy translation"
-                      aria-label="Copy translated text"
+                      title="Copy spoken text"
+                      aria-label="Copy spoken text"
                     >
-                      {copiedId === turn.id ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                      {copiedId === `${turn.id}-src` ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                     </button>
                   </div>
                 </div>
                 
                 <p 
                   dir={sMeta.dir}
-                  className={`text-sm ${sMeta.dir === 'rtl' ? 'urdu-text text-base text-emerald-700 dark:text-emerald-200' : 'text-theme-primary'}`}
+                  className={`text-sm ${sMeta.dir === 'rtl' ? 'urdu-text text-base text-emerald-700 dark:text-emerald-200 font-semibold' : 'text-theme-primary'}`}
                 >
                   {turn.sourceText}
                 </p>
 
                 {/* Live Translation Caption Sub-Card */}
-                <div className={`mt-2.5 rounded-xl p-2.5 border ${
+                <div className={`mt-2.5 rounded-xl p-2.5 border transition-all ${
                   isLeft ? 'bg-card-theme border-emerald-500/30' : 'bg-card-theme border-indigo-500/30'
                 }`}>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block mb-1 flex items-center gap-1">
-                    <span>{tMeta.flag}</span>
-                    <span>{tMeta.name} Live Caption ({tMeta.nativeName}):</span>
-                  </span>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                      <span>{tMeta.flag}</span>
+                      <span>{tMeta.name} Live Caption ({tMeta.nativeName}):</span>
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handlePlayTranslatedAudio(turn)}
+                        className={`p-1 rounded transition-colors ${
+                          activePlayingKey === `${turn.id}-target`
+                            ? 'bg-emerald-500/20 text-emerald-500 animate-pulse'
+                            : 'text-theme-muted hover:text-theme-primary hover:bg-card-subtle-theme'
+                        }`}
+                        title={`Listen to translated ${tMeta.name} audio`}
+                        aria-label="Play translated audio"
+                      >
+                        <Volume2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(turn.id, turn.translatedText)}
+                        className="text-theme-muted hover:text-theme-primary p-1 rounded hover:bg-card-subtle-theme transition-colors"
+                        title="Copy translated caption"
+                        aria-label="Copy translated text"
+                      >
+                        {copiedId === turn.id ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                      </button>
+                    </div>
+                  </div>
 
                   <p 
                     dir={tMeta.dir}

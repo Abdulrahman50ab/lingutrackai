@@ -1,5 +1,60 @@
 import { getLanguageByCode } from './languagesData';
 
+// Common Urdu phrase mappings to guarantee natural pronunciation on any host OS
+const commonUrduPhrasesMap: Record<string, string> = {
+  'السلام علیکم': 'Assalam-o-Alaikum',
+  'السلام علیکم!': 'Assalam-o-Alaikum!',
+  'السلام علیکم! آپ کیسے ہیں؟': 'Assalam-o-Alaikum! Aap kaise hain?',
+  'آپ کیسے ہیں': 'Aap kaise hain',
+  'آپ کیسے ہیں؟': 'Aap kaise hain?',
+  'بہت بہت شکریہ': 'Bohat bohat shukriya',
+  'بہت شکریہ': 'Bohat shukriya',
+  'جی بالکل': 'Jee bilkul',
+  'خدا حافظ': 'Khuda Hafiz',
+  'شکریہ': 'Shukriya',
+  'ہم نے بیک اینڈ ڈیٹا بیس کی اصلاح کر دی ہے': 'Hum ne backend database optimize kar diya hai',
+  'اگلی میٹنگ پیر کو 3 بجے طے ہوئی ہے': 'Agli meeting Monday ko 3 baje tay hui hai',
+  'تمام ٹیسٹنگ پروڈکشن کے لیے تیار ہے': 'Tamam testing production k liye tayyar hai',
+  'پروجیکٹ کی آخری تاریخ جمعہ شام تک ہے': 'Project ki aakhri tareekh Juma shaam tak hai',
+  'بجٹ کا تخمینہ منظور کر لیا گیا ہے': 'Budget ka takhmeena manzoor kar liya gaya hai',
+  'معاہدے کا قانونی جائزہ مکمل ہو چکا ہے': 'Muahiday ka qanooni jaiza mukammal ho chuka hai',
+  'تمام ٹیم ممبرز کے ساتھ رپورٹ شیئر کر دی گئی ہے': 'Tamam team members k sath report share kar di gayi hai',
+  'کیا میری آواز آ رہی ہے': 'Kya meri awaz aa rahi hai',
+  'کیا میری آواز آ رہی ہے؟': 'Kya meri awaz aa rahi hai?',
+};
+
+const urduCharMap: Record<string, string> = {
+  'ا': 'a', 'آ': 'aa', 'ب': 'b', 'پ': 'p', 'ت': 't', 'ٹ': 't', 'ث': 's',
+  'ج': 'j', 'چ': 'ch', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ڈ': 'd', 'ذ': 'z',
+  'ر': 'r', 'ڑ': 'r', 'ز': 'z', 'ژ': 'zh', 'س': 's', 'ش': 'sh', 'ص': 's',
+  'ض': 'z', 'ط': 't', 'ظ': 'z', 'ع': 'a', 'غ': 'gh', 'ف': 'f', 'ق': 'q',
+  'ک': 'k', 'گ': 'g', 'ل': 'l', 'م': 'm', 'ن': 'n', 'ں': 'n', 'و': 'o',
+  'ہ': 'h', 'ۂ': 'h', 'ۃ': 't', 'ھ': 'h', 'ء': '', 'ی': 'i', 'ے': 'e',
+  '؟': '?', '،': ',', '۔': '.', '!': '!'
+};
+
+/**
+ * Phonetically romanizes Perso-Arabic Urdu text so standard OS speech synthesizers can pronounce it clearly
+ */
+export function romanizeUrduText(urduText: string): string {
+  if (!urduText) return '';
+  let result = urduText.trim();
+  
+  // 1. Check phrase map
+  for (const [key, val] of Object.entries(commonUrduPhrasesMap)) {
+    if (result.includes(key)) {
+      result = result.replaceAll(key, val);
+    }
+  }
+
+  // 2. Transliterate remaining Perso-Arabic characters
+  if (/[\u0600-\u06FF]/.test(result)) {
+    result = result.split('').map(c => urduCharMap[c] !== undefined ? urduCharMap[c] : c).join('');
+  }
+
+  return result.replace(/\s+/g, ' ').trim();
+}
+
 export class TTSService {
   private isSpeaking = false;
   private voices: SpeechSynthesisVoice[] = [];
@@ -66,7 +121,7 @@ export class TTSService {
   }
 
   /**
-   * Speak text in ANY world language using Web Speech Synthesis with intelligent multi-level voice fallback
+   * Speak text in ANY world language with intelligent voice matching and automatic phonetic transliteration for Urdu
    */
   speak(text: string, languageCode: string, onEnd?: () => void, phoneticFallback?: string) {
     // Play instant acoustic confirmation tone
@@ -87,46 +142,41 @@ export class TTSService {
     const langMeta = getLanguageByCode(languageCode);
     const targetBcp = (langMeta.bcp47 || languageCode).toLowerCase();
 
-    // 1. Check exact BCP-47 match (e.g. 'ur-PK', 'en-US', 'ar-SA', 'es-ES')
+    // 1. Check exact native Urdu voice match (e.g. 'ur-PK', 'ur-IN', 'ur')
+    const nativeUrduVoice = this.voices.find(v => v.lang.toLowerCase().startsWith('ur'));
+    
+    // 2. Check general exact BCP-47 match
     let matchedVoice = this.voices.find(v => v.lang.toLowerCase() === targetBcp);
-
-    // 2. Check language prefix match (e.g. 'ur', 'hi', 'ar', 'es')
     if (!matchedVoice) {
       matchedVoice = this.voices.find(v => v.lang.toLowerCase().startsWith(languageCode.toLowerCase()));
     }
 
     let textToSpeak = text;
     let voiceToUse: SpeechSynthesisVoice | undefined = matchedVoice;
-    let bcpToUse = langMeta.bcp47;
+    let bcpToUse = langMeta.bcp47 || 'en-US';
 
-    // 3. For Urdu / Roman Urdu / Code-switched text, fallback to Hindi/Arabic voice or Roman Urdu phonetic synthesis
-    if (!matchedVoice && (languageCode === 'ur' || languageCode === 'ur-Latn' || languageCode === 'code-switched')) {
-      const urduOrHindiVoice = this.voices.find(v => 
-        v.lang.toLowerCase().includes('ur') || 
-        v.lang.toLowerCase().includes('hi') ||
-        v.lang.toLowerCase().includes('ar')
-      );
+    const isUrduLanguage = languageCode === 'ur' || languageCode === 'ur-Latn' || languageCode === 'code-switched';
+    const containsPersoArabic = /[\u0600-\u06FF]/.test(text);
 
-      if (urduOrHindiVoice) {
-        voiceToUse = urduOrHindiVoice;
-        bcpToUse = urduOrHindiVoice.lang;
+    if (isUrduLanguage || containsPersoArabic) {
+      if (nativeUrduVoice) {
+        voiceToUse = nativeUrduVoice;
+        bcpToUse = nativeUrduVoice.lang;
+        textToSpeak = text;
       } else {
-        // When host OS (e.g. standard Windows) lacks native Urdu voices,
-        // synthesize the Roman Urdu phonetic transliteration with standard system voice
-        if (phoneticFallback) {
-          textToSpeak = phoneticFallback;
-        }
+        // When host OS lacks native Urdu voice pack, standard voices cannot read Arabic/Nastaliq script.
+        // We guarantee audible and natural pronunciation by speaking the Roman Urdu phonetic text!
+        textToSpeak = phoneticFallback || romanizeUrduText(text);
         voiceToUse = this.voices[0];
         bcpToUse = this.voices[0]?.lang || 'en-US';
       }
     } else if (!matchedVoice && this.voices.length > 0) {
-      // Fallback for any other world language when specific voice pack is not installed locally
       voiceToUse = this.voices[0];
       bcpToUse = this.voices[0]?.lang || 'en-US';
     }
 
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.rate = 0.95;
+    utterance.rate = 0.92;
     utterance.pitch = 1.0;
     utterance.lang = bcpToUse;
 
@@ -176,7 +226,7 @@ export class TTSService {
         clearInterval(this.heartbeatTimer);
         this.heartbeatTimer = null;
       }
-    }, 9000);
+    }, 8000);
   }
 
   stop() {
