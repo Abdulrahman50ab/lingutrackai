@@ -56,9 +56,12 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ segments }) 
       setActivePlayingId(null);
     } else {
       setActivePlayingId(seg.id);
-      ttsService.speak(seg.text, seg.language as 'en' | 'ur' | 'ur-Latn', () => {
-        setActivePlayingId(null);
-      });
+      ttsService.speak(
+        seg.text, 
+        seg.language, 
+        () => setActivePlayingId(null), 
+        seg.romanUrduText || seg.translatedText
+      );
     }
   };
 

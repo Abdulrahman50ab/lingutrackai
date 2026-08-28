@@ -221,7 +221,7 @@ export const LiveInterpretationView: React.FC = () => {
   };
 
   const handleReplayTurnAudio = (turn: LiveInterpretationTurn) => {
-    ttsService.speak(turn.translatedText, turn.targetLanguage);
+    ttsService.speak(turn.translatedText, turn.targetLanguage, undefined, turn.romanUrduText);
   };
 
   const leftPhrases = quickPhrasesByLanguage[leftLang] || quickPhrasesByLanguage.en;
