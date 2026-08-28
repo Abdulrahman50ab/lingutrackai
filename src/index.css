@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+@layer base {
+  :root, .theme-light {
+    --bg-app: #F8FAFC;
+    --bg-header: rgba(255, 255, 255, 0.95);
+    --bg-sidebar: rgba(255, 255, 255, 0.95);
+    --bg-card: #FFFFFF;
+    --bg-card-subtle: #F1F5F9;
+    --bg-input: #FFFFFF;
+    --border-main: #E2E8F0;
+    --border-hover: #CBD5E1;
+    --text-primary: #0F172A;
+    --text-secondary: #334155;
+    --text-muted: #64748B;
+    --accent-glow: rgba(99, 102, 241, 0.15);
+    --shadow-main: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+  }
+
+  .theme-dark {
+    --bg-app: #0B0F19;
+    --bg-header: rgba(15, 23, 42, 0.92);
+    --bg-sidebar: rgba(11, 15, 25, 0.95);
+    --bg-card: #111827;
+    --bg-card-subtle: #1F2937;
+    --bg-input: #0B0F19;
+    --border-main: #1F2937;
+    --border-hover: #374151;
+    --text-primary: #F9FAFB;
+    --text-secondary: #9CA3AF;
+    --text-muted: #6B7280;
+    --accent-glow: rgba(99, 102, 241, 0.25);
+    --shadow-main: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  }
+
+  .theme-emerald {
+    --bg-app: #03140F;
+    --bg-header: rgba(5, 26, 20, 0.95);
+    --bg-sidebar: rgba(4, 21, 16, 0.95);
+    --bg-card: #08281F;
+    --bg-card-subtle: #0D3A2D;
+    --bg-input: #041712;
+    --border-main: #134B3B;
+    --border-hover: #1A644F;
+    --text-primary: #ECFDF5;
+    --text-secondary: #A7F3D0;
+    --text-muted: #6EE7B7;
+    --accent-glow: rgba(16, 185, 129, 0.25);
+    --shadow-main: 0 10px 30px -10px rgba(2, 44, 34, 0.6);
+  }
+
+  .theme-midnight {
+    --bg-app: #070B16;
+    --bg-header: rgba(10, 17, 33, 0.95);
+    --bg-sidebar: rgba(8, 14, 28, 0.95);
+    --bg-card: #0F1B35;
+    --bg-card-subtle: #162648;
+    --bg-input: #090F20;
+    --border-main: #1C305C;
+    --border-hover: #2A447E;
+    --text-primary: #F0F6FF;
+    --text-secondary: #93C5FD;
+    --text-muted: #60A5FA;
+    --accent-glow: rgba(59, 130, 246, 0.25);
+    --shadow-main: 0 10px 30px -10px rgba(2, 6, 23, 0.7);
+  }
+
+  body {
+    font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+}
+
+/* Dynamic theme classes */
+.bg-app-theme {
+  background-color: var(--bg-app);
+}
+
+.bg-header-theme {
+  background-color: var(--bg-header);
+}
+
+.bg-sidebar-theme {
+  background-color: var(--bg-sidebar);
+}
+
+.bg-card-theme {
+  background-color: var(--bg-card);
+  box-shadow: var(--shadow-main);
+}
+
+.bg-card-subtle-theme {
+  background-color: var(--bg-card-subtle);
+}
+
+.bg-input-theme {
+  background-color: var(--bg-input);
+}
+
+.border-theme {
+  border-color: var(--border-main);
+}
+
+.border-hover-theme:hover {
+  border-color: var(--border-hover);
+}
+
+.text-theme-primary {
+  color: var(--text-primary);
+}
+
+.text-theme-secondary {
+  color: var(--text-secondary);
+}
+
+.text-theme-muted {
+  color: var(--text-muted);
+}
+
+/* Urdu Nastaliq styling */
+.urdu-text {
+  font-family: 'Noto Nastaliq Urdu', 'Gulzar', serif;
+  line-height: 2.2 !important;
+  direction: rtl;
+  text-align: right;
+}
+
+.urdu-inline {
+  font-family: 'Noto Nastaliq Urdu', 'Gulzar', serif;
+  line-height: 1.8 !important;
+}
+
+/* Card hover animation */
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px -8px var(--accent-glow);
+}
+
+/* Audio Wave Visualizer Bars */
+.sound-wave-bar {
+  width: 4px;
+  border-radius: 9999px;
+  transition: height 0.08s ease;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-card-subtle);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.7);
+}
