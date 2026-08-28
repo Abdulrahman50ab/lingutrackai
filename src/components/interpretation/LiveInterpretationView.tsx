@@ -430,6 +430,8 @@ export const LiveInterpretationView: React.FC = () => {
               className="flex-1 rounded-xl border border-theme bg-input-theme px-3 py-2 text-xs text-theme-primary placeholder:text-theme-muted focus:border-indigo-500 focus:outline-none shadow-sm"
             />
             <button
+              type="button"
+              aria-label="Send Left Speaker Message"
               onClick={() => handleSendTurn('left')}
               className="rounded-xl bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition-all flex items-center gap-1 shadow-sm"
             >
@@ -485,6 +487,8 @@ export const LiveInterpretationView: React.FC = () => {
               className="flex-1 rounded-xl border border-theme bg-input-theme px-3 py-2 text-xs text-theme-primary placeholder:text-theme-muted focus:border-emerald-500 focus:outline-none shadow-sm"
             />
             <button
+              type="button"
+              aria-label="Send Right Speaker Message"
               onClick={() => handleSendTurn('right')}
               className="rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition-all flex items-center gap-1 shadow-sm"
             >

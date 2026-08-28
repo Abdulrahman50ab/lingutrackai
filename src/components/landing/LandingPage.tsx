@@ -151,6 +151,8 @@ export const LandingPage: React.FC = () => {
             <ThemeSwitcher />
 
             <button
+              type="button"
+              data-testid="launch-app-btn"
               onClick={() => setActiveTab('record-upload')}
               className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-indigo-500/20 hover:from-indigo-500 hover:to-violet-500 transition-all hover:scale-[1.02]"
             >
@@ -167,19 +169,6 @@ export const LandingPage: React.FC = () => {
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-indigo-500/15 to-emerald-500/15 blur-[120px] rounded-full pointer-events-none -z-10" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
-          {/* Top Pill Badges */}
-          <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-theme bg-card-theme/90 px-4 py-1.5 text-xs shadow-sm">
-            <span className="flex items-center gap-1.5 font-bold text-indigo-600 dark:text-indigo-400">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>LinguTrack AI v2.0</span>
-            </span>
-            <span className="text-theme-muted">•</span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-              <span>🇵🇰 Urdu (اردو) & Roman Native</span>
-            </span>
-            <span className="text-theme-muted">•</span>
-            <span className="text-theme-secondary font-medium">50+ World Languages</span>
-          </div>
 
           {/* Main Hero Headline */}
           <div className="max-w-4xl mx-auto space-y-4">
@@ -273,6 +262,8 @@ export const LandingPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                 <div className="md:col-span-4 flex items-center gap-3">
                   <button
+                    data-testid="toggle-demo-speech"
+                    aria-label="Toggle Live Speech Simulation"
                     onClick={() => setIsDemoPlaying(prev => !prev)}
                     className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg hover:bg-indigo-500 transition-all hover:scale-105"
                   >

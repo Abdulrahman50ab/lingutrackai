@@ -32,6 +32,8 @@ export const UpgradeModal: React.FC = () => {
       <div className="relative w-full max-w-4xl rounded-3xl border border-theme bg-card-theme p-6 sm:p-8 shadow-2xl space-y-6">
         {/* Close Button */}
         <button
+          type="button"
+          aria-label="Close Upgrade Modal"
           onClick={() => setIsUpgradeModalOpen(false)}
           className="absolute right-5 top-5 rounded-full bg-card-subtle-theme p-2 text-theme-muted hover:text-theme-primary transition-colors border border-theme"
         >

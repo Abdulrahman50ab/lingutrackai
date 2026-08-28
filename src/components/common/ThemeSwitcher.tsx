@@ -126,6 +126,8 @@ export const ThemeSwitcher: React.FC<{ variant?: 'navbar' | 'settings' }> = ({ v
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        data-testid="theme-switcher-trigger"
+        aria-label={`Current Theme: ${activeOption.name}`}
         onClick={() => setIsOpen(prev => !prev)}
         className="flex items-center gap-2 rounded-xl border border-theme bg-card-theme px-3 py-1.5 text-xs font-semibold text-theme-primary hover:border-indigo-500/50 transition-all shadow-sm"
         title="Switch Application Theme"
@@ -151,6 +153,7 @@ export const ThemeSwitcher: React.FC<{ variant?: 'navbar' | 'settings' }> = ({ v
               return (
                 <button
                   key={opt.id}
+                  data-testid={`theme-option-${opt.id}`}
                   onClick={() => {
                     setTheme(opt.id);
                     setIsOpen(false);

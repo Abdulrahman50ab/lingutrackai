@@ -109,6 +109,11 @@ export const sampleMeetings: MeetingSession[] = [
       overview: 'The team addressed API performance bottlenecks and verified RTL Urdu frontend enhancements. DevOps patched database connection pool limits using Redis, while Frontend finalized Nastaliq typography support for the upcoming client rollout.',
       overviewUrdu: 'ٹیم نے API کی رفتار کے مسائل حل کیے اور اردو RTL فرنٹ اینڈ کی توثیق کی۔ ڈیواپس نے ریڈس کیشے کے ذریعے ڈیٹا بیس کی اصلاح کی اور فرنٹ اینڈ نے نستعلیق فونٹس مکمل کر لیے ہیں۔',
       overviewRomanUrdu: 'Team ne API speed issues solve kiye aur Urdu RTL frontend verify kiya. DevOps ne Redis cache se database pooling fix ki aur Frontend ne Nastaliq fonts final kar diye.',
+      translations: {
+        ar: 'موجز شامل: عالج الفريق اختناقات أداء واجهة برمجة التطبيقات وتحقق من تحسينات واجهة المستخدم باللغة الأردية. أصلح فريق العمليات قيود قاعدة البيانات باستخدام Redis.',
+        es: 'Resumen ejecutivo: El equipo resolvió los cuellos de botella en el rendimiento de la API y verificó las mejoras de la interfaz de usuario en urdu. DevOps aplicó un parche a la base de datos usando Redis.',
+        fr: 'Résumé exécutif: L\'équipe a résolu les goulots d\'étranglement des performances de l\'API et vérifié les améliorations de l\'interface utilisateur en ourdou.'
+      },
       takeaways: [
         { id: 'tk-1', title: 'Database Pool Exhaustion Resolved', description: 'Salman identified connection leaks and deployed a connection pooling patch on Redis cache cluster.', category: 'decision' },
         { id: 'tk-2', title: 'Urdu Nastaliq & RTL Ready', description: 'Sara completed RTL layout alignment and font rendering for mobile web.', category: 'milestone' },

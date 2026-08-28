@@ -168,6 +168,7 @@ export const ActionItemsHub: React.FC = () => {
               <div className="flex items-start space-x-3.5">
                 <input
                   type="checkbox"
+                  aria-label={`Mark action item as ${item.completed ? 'incomplete' : 'complete'}: ${item.task}`}
                   checked={item.completed}
                   onChange={() => {}}
                   className="mt-1 h-4 w-4 rounded border-theme text-indigo-600 focus:ring-0 cursor-pointer"

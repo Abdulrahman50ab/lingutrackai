@@ -39,7 +39,7 @@ const STORAGE_KEY_PROFILE = 'lingutrack_profile_v1';
 const STORAGE_KEY_THEME = 'lingutrack_theme_v1';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('record-upload');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('landing');
   
   // Default to white (light) theme as requested
   const [theme, setTheme] = useState<ThemeMode>(() => {
