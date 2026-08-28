@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { ThemeSwitcher } from '../common/ThemeSwitcher';
+import { BrandLogo } from '../common/BrandLogo';
 
 export const Navbar: React.FC = () => {
   const { 
@@ -26,25 +27,8 @@ export const Navbar: React.FC = () => {
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-theme bg-header-theme px-4 sm:px-6 backdrop-blur-xl transition-colors">
       {/* Left: Brand Logo & Workspace Info */}
       <div className="flex items-center space-x-3 sm:space-x-4">
-        <div className="flex items-center space-x-2.5 cursor-pointer" onClick={() => setActiveTab('record-upload')}>
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 p-0.5 shadow-md">
-            <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-card-theme">
-              <Sparkles className="h-5 w-5 text-indigo-500 animate-pulse" />
-            </div>
-          </div>
-          <div className="hidden sm:block">
-            <div className="flex items-center space-x-1.5">
-              <span className="font-extrabold text-lg tracking-tight text-theme-primary font-sans">LinguTrack</span>
-              <span className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">AI</span>
-            </div>
-            <p className="text-[11px] text-theme-muted flex items-center gap-1">
-              <span>English</span>
-              <span>•</span>
-              <span className="font-urdu text-emerald-600 dark:text-emerald-400 text-xs">اردو</span>
-              <span>•</span>
-              <span>Roman Urdu</span>
-            </p>
-          </div>
+        <div className="cursor-pointer" onClick={() => setActiveTab('record-upload')}>
+          <BrandLogo size="md" animate />
         </div>
 
         {/* Workspace pill */}

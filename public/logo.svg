@@ -1,31 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
   <defs>
     <!-- Background Gradient -->
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="logoBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#4F46E5" />
       <stop offset="50%" stop-color="#7C3AED" />
       <stop offset="100%" stop-color="#10B981" />
     </linearGradient>
 
     <!-- Glowing Wave Gradient -->
-    <linearGradient id="waveGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+    <linearGradient id="logoWaveGrad" x1="0%" y1="100%" x2="0%" y2="0%">
       <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85" />
       <stop offset="100%" stop-color="#FFFFFF" stop-opacity="1" />
     </linearGradient>
 
     <!-- Subtle Drop Shadow -->
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+    <filter id="logoGlow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#4F46E5" flood-opacity="0.45" />
     </filter>
 
-    <linearGradient id="sparkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="logoSparkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FDE047" />
       <stop offset="100%" stop-color="#F59E0B" />
     </linearGradient>
   </defs>
 
   <!-- Squircle Base with Glow -->
-  <rect x="8" y="8" width="112" height="112" rx="30" fill="url(#bgGrad)" filter="url(#glow)" />
+  <rect x="8" y="8" width="112" height="112" rx="30" fill="url(#logoBgGrad)" filter="url(#logoGlow)" />
 
   <!-- Inner Soft Border -->
   <rect x="9.5" y="9.5" width="109" height="109" rx="28.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="2" />
@@ -35,23 +35,23 @@
 
   <!-- Soundwave Frequency Equalizer Bars (LinguTrack AI Voice Wave) -->
   <!-- Bar 1 (Left Outer) -->
-  <rect x="32" y="52" width="6" height="24" rx="3" fill="url(#waveGrad)" opacity="0.75" />
+  <rect x="32" y="52" width="6" height="24" rx="3" fill="url(#logoWaveGrad)" opacity="0.75" />
   
   <!-- Bar 2 (Left Mid) -->
-  <rect x="44" y="38" width="6" height="52" rx="3" fill="url(#waveGrad)" opacity="0.9" />
+  <rect x="44" y="38" width="6" height="52" rx="3" fill="url(#logoWaveGrad)" opacity="0.9" />
   
   <!-- Bar 3 (Center Key / Speech Axis) -->
   <rect x="56" y="26" width="7" height="76" rx="3.5" fill="#FFFFFF" />
 
   <!-- Bar 4 (Right Mid) -->
-  <rect x="70" y="36" width="6" height="56" rx="3" fill="url(#waveGrad)" opacity="0.9" />
+  <rect x="70" y="36" width="6" height="56" rx="3" fill="url(#logoWaveGrad)" opacity="0.9" />
   
   <!-- Bar 5 (Right Outer) -->
-  <rect x="82" y="48" width="6" height="32" rx="3" fill="url(#waveGrad)" opacity="0.75" />
+  <rect x="82" y="48" width="6" height="32" rx="3" fill="url(#logoWaveGrad)" opacity="0.75" />
 
   <!-- AI Intelligence Star / Spark in Top-Right -->
   <g transform="translate(86, 22)">
-    <path d="M0,8 C4,8 8,4 8,0 C8,4 12,8 16,8 C12,8 8,12 8,16 C8,12 4,8 0,8 Z" fill="url(#sparkGrad)" />
+    <path d="M0,8 C4,8 8,4 8,0 C8,4 12,8 16,8 C12,8 8,12 8,16 C8,12 4,8 0,8 Z" fill="url(#logoSparkGrad)" />
     <circle cx="8" cy="8" r="1.5" fill="#FFFFFF" />
   </g>
 </svg>
