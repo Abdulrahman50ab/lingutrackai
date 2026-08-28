@@ -123,9 +123,9 @@ export const UpgradeModal: React.FC = () => {
           </div>
 
           {/* Team Plan (Recommended) */}
-          <div className="rounded-2xl border-2 border-indigo-500 bg-card-theme p-5 flex flex-col justify-between shadow-xl relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-600 to-emerald-500 px-3 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-md">
-              Most Popular for Remote Teams
+          <div className="rounded-2xl border-2 border-indigo-500 bg-card-theme p-5 pt-6 flex flex-col justify-between shadow-xl relative">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-indigo-600 to-emerald-500 px-3.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-md z-10 pointer-events-none">
+              Most Popular
             </div>
 
             <div className="space-y-3">

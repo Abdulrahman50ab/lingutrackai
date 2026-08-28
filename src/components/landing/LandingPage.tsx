@@ -850,8 +850,8 @@ export const LandingPage: React.FC = () => {
 
           {/* Team Workspace Plan (Featured) */}
           <div className="rounded-3xl border-2 border-indigo-500 bg-card-theme p-6 sm:p-8 flex flex-col justify-between shadow-2xl relative">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-600 to-emerald-500 px-4 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white shadow-md">
-              Most Popular for Remote Teams
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-indigo-600 to-emerald-500 px-4 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white shadow-md z-10 pointer-events-none">
+              Most Popular
             </div>
 
             <div className="space-y-4">
