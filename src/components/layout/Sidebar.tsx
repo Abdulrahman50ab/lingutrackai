@@ -66,47 +66,11 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside className="w-64 h-full flex-shrink-0 flex flex-col justify-between overflow-y-auto overflow-x-hidden border-r border-theme bg-sidebar-theme p-4 select-none transition-colors">
-      <div className="space-y-5">
-        {/* Quick Language Engine Status Indicator */}
-        <div className="rounded-2xl border border-theme bg-card-theme p-3.5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-theme-muted">Language Pipeline</span>
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-          </div>
-          <div className="mt-2.5 grid grid-cols-3 gap-1 text-center">
-            <div className="rounded-lg bg-card-subtle-theme py-1 px-1 border border-theme">
-              <span className="block text-[10px] font-bold text-indigo-600 dark:text-indigo-400">English</span>
-              <span className="text-[9px] text-theme-muted">WER 5.4%</span>
-            </div>
-            <div className="rounded-lg bg-card-subtle-theme py-1 px-1 border border-theme">
-              <span className="block text-[10px] font-bold text-emerald-600 dark:text-emerald-400 font-urdu">اردو</span>
-              <span className="text-[9px] text-theme-muted">RTL Fast</span>
-            </div>
-            <div className="rounded-lg bg-card-subtle-theme py-1 px-1 border border-theme">
-              <span className="block text-[10px] font-bold text-cyan-600 dark:text-cyan-400">Roman</span>
-              <span className="text-[9px] text-theme-muted">Phonetic</span>
-            </div>
-          </div>
-        </div>
-
+      <div className="space-y-4">
         {/* Navigation Modules */}
-        <nav className="space-y-1">
-          <button
-            onClick={() => setActiveTab('landing')}
-            className="w-full flex items-center justify-between gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 transition-all shadow-sm mb-3"
-          >
-            <div className="flex items-center gap-2">
-              <Globe2 className="h-4 w-4" />
-              <span>Marketing Website</span>
-            </div>
-            <span className="text-[10px] rounded bg-indigo-500/20 px-1.5 py-0.2 font-mono">Portal</span>
-          </button>
-
+        <nav className="space-y-1.5">
           <div className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-theme-muted">
-            Core Modules
+            Workspace Modules
           </div>
           {navItems.map((item) => {
             const Icon = item.icon;
