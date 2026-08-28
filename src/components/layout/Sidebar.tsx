@@ -65,8 +65,8 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 flex-shrink-0 flex flex-col justify-between border-r border-theme bg-sidebar-theme p-4 select-none transition-colors">
-      <div className="space-y-6">
+    <aside className="w-64 h-full flex-shrink-0 flex flex-col justify-between overflow-y-auto overflow-x-hidden border-r border-theme bg-sidebar-theme p-4 select-none transition-colors">
+      <div className="space-y-5">
         {/* Quick Language Engine Status Indicator */}
         <div className="rounded-2xl border border-theme bg-card-theme p-3.5 shadow-sm">
           <div className="flex items-center justify-between">
@@ -157,10 +157,10 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Bottom Compliance & Security Badge */}
-      <div className="space-y-3 pt-4 border-t border-theme">
+      <div className="space-y-2.5 pt-4 mt-4 border-t border-theme shrink-0">
         <div className="rounded-2xl border border-theme bg-card-theme p-3 shadow-sm">
           <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
-            <ShieldCheck className="h-4 w-4" />
+            <ShieldCheck className="h-4 w-4 shrink-0" />
             <span>Encrypted at Rest & Transit</span>
           </div>
           <p className="mt-1 text-[10px] text-theme-muted leading-relaxed">

@@ -65,23 +65,23 @@ const MainLayout: React.FC = () => {
       </div>
 
       {/* Main Body */}
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 overflow-hidden relative min-h-0">
         {/* Desktop Sidebar */}
-        <div className="hidden md:flex flex-col">
+        <div className="hidden md:flex flex-col h-full shrink-0">
           <Sidebar />
         </div>
 
         {/* Mobile Sidebar Overlay Drawer */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-40 flex md:hidden bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}>
-            <div className="w-72 h-full bg-sidebar-theme border-r border-theme shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="w-72 h-full bg-sidebar-theme border-r border-theme shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
               <Sidebar />
             </div>
           </div>
         )}
 
         {/* Active Module Screen */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-app-theme relative transition-colors">
+        <main className="flex-1 flex flex-col overflow-hidden bg-app-theme relative transition-colors min-h-0">
           {renderActiveView()}
         </main>
       </div>
