@@ -9,11 +9,22 @@ import { ActionItemsHub } from './components/actionItems/ActionItemsHub';
 import { TeamWorkspace } from './components/workspace/TeamWorkspace';
 import { SettingsModal } from './components/workspace/SettingsModal';
 import { UpgradeModal } from './components/modals/UpgradeModal';
+import { LandingPage } from './components/landing/LandingPage';
 import { Menu, X } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
   const { activeTab } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // If activeTab is 'landing', render full marketing portal
+  if (activeTab === 'landing') {
+    return (
+      <div className="min-h-screen bg-app-theme text-theme-primary">
+        <LandingPage />
+        <UpgradeModal />
+      </div>
+    );
+  }
 
   const renderActiveView = () => {
     switch (activeTab) {

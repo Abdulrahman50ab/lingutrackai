@@ -128,6 +128,7 @@ export interface UserProfile {
 }
 
 export type ActiveTab = 
+  | 'landing'
   | 'record-upload'
   | 'live-interpretation'
   | 'meeting-archive'

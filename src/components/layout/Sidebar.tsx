@@ -92,8 +92,19 @@ export const Sidebar: React.FC = () => {
           </div>
         </div>
 
-        {/* Navigation Menu */}
-        <nav className="space-y-1.5">
+        {/* Navigation Modules */}
+        <nav className="space-y-1">
+          <button
+            onClick={() => setActiveTab('landing')}
+            className="w-full flex items-center justify-between gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 transition-all shadow-sm mb-3"
+          >
+            <div className="flex items-center gap-2">
+              <Globe2 className="h-4 w-4" />
+              <span>Marketing Website</span>
+            </div>
+            <span className="text-[10px] rounded bg-indigo-500/20 px-1.5 py-0.2 font-mono">Portal</span>
+          </button>
+
           <div className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-theme-muted">
             Core Modules
           </div>

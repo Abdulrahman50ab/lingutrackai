@@ -103,6 +103,15 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
 
+        {/* Website Landing Portal Link */}
+        <button
+          onClick={() => setActiveTab('landing')}
+          className="hidden md:flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 transition-all"
+        >
+          <Globe2 className="h-3.5 w-3.5" />
+          <span>Website</span>
+        </button>
+
         {/* Live Interpretation Quick Action */}
         <button
           onClick={() => setActiveTab('live-interpretation')}
