@@ -4,7 +4,7 @@ import {
   KeyTakeaway, 
 } from '../../types';
 import { 
-  Sparkles, 
+  FileText, 
   CheckSquare, 
   Download, 
   Copy, 
@@ -13,9 +13,9 @@ import {
   User, 
   Tag, 
   Flame, 
-  Award,
-  AlertTriangle,
-  Lightbulb,
+  Award, 
+  AlertTriangle, 
+  Lightbulb, 
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { jsPDF } from 'jspdf';
@@ -41,7 +41,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({ meeting }) => {
   if (!meeting) {
     return (
       <div className="rounded-2xl border border-theme bg-card-theme p-12 text-center shadow-sm">
-        <Sparkles className="h-10 w-10 text-theme-muted mx-auto mb-3" />
+        <FileText className="h-10 w-10 text-theme-muted mx-auto mb-3" />
         <h3 className="text-base font-semibold text-theme-primary">No Meeting Summary Available</h3>
         <p className="text-xs text-theme-muted mt-1">Select a recorded session from the archive or record a new one.</p>
       </div>
@@ -168,7 +168,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({ meeting }) => {
       <div className="rounded-2xl border border-theme bg-card-theme p-5 space-y-4 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-theme pb-3">
           <div className="flex items-center space-x-2">
-            <Sparkles className="h-5 w-5 text-indigo-500" />
+            <FileText className="h-5 w-5 text-indigo-500" />
             <h2 className="text-sm font-bold uppercase tracking-wider text-theme-primary">
               AI Executive Summary
             </h2>

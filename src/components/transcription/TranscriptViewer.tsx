@@ -9,7 +9,7 @@ import {
   Edit3, 
   Save, 
   Volume2, 
-  Sparkles, 
+  FileAudio, 
   Tag,
   ArrowRightLeft
 } from 'lucide-react';
@@ -84,7 +84,7 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ segments }) 
   if (segments.length === 0) {
     return (
       <div className="rounded-2xl border border-theme bg-card-theme p-12 text-center shadow-sm">
-        <Sparkles className="h-10 w-10 text-theme-muted mx-auto mb-3" />
+        <FileAudio className="h-10 w-10 text-theme-muted mx-auto mb-3" />
         <h3 className="text-base font-semibold text-theme-primary">No Transcript Segments Available</h3>
         <p className="text-xs text-theme-muted mt-1 max-w-sm mx-auto">
           Start recording from the microphone or select a demo sample above to generate live multi-lingual transcripts.

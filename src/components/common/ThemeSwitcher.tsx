@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sun, Moon, Sparkles, ChevronDown, Check, Palette } from 'lucide-react';
+import { Sun, Moon, Layers, ChevronDown, Check, Palette } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { ThemeMode } from '../../types';
 
@@ -42,7 +42,7 @@ const themeOptions: ThemeOption[] = [
     id: 'emerald',
     name: 'Urdu Emerald',
     sublabel: 'Pakistani Green & Forest',
-    icon: Sparkles,
+    icon: Layers,
     colors: {
       bg: '#03140F',
       card: '#08281F',

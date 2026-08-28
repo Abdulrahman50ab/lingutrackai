@@ -5,7 +5,6 @@ import {
   Check, 
   ChevronDown, 
   X,
-  Sparkles
 } from 'lucide-react';
 import { 
   WORLD_LANGUAGES, 
@@ -156,7 +155,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           {/* Footer note */}
           <div className="mt-2.5 pt-2 border-t border-theme flex items-center justify-between text-[10px] text-theme-muted px-1">
             <span className="flex items-center gap-1">
-              <Sparkles className="h-3 w-3 text-indigo-500" />
+              <Globe2 className="h-3 w-3 text-indigo-500" />
               50+ World Languages & Scripts Supported
             </span>
             <span className="font-mono">{filteredLanguages.length} Listed</span>

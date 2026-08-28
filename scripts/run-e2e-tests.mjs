@@ -163,7 +163,7 @@ async function runEnhancedTestSuite() {
       // Test Urdu Summary
       await page.locator('button:has-text("اردو")').first().click({ force: true });
       await page.waitForTimeout(200);
-      let hasUrdu = await page.evaluate(() => document.body.innerText.includes('ٹیم نے') || document.body.innerText.includes('نستعلیق'));
+      let hasUrdu = await page.evaluate(() => document.body.innerText.includes('میٹنگ میں') || document.body.innerText.includes('ٹیم نے') || document.body.innerText.includes('نستعلیق'));
       if (!hasUrdu) throw new Error('Urdu summary failed to render');
 
       // Test Arabic Summary

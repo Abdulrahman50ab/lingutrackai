@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   Globe2, 
   Mic, 
-  Sparkles, 
   Zap, 
   ShieldCheck, 
   CheckCircle2, 
@@ -25,8 +24,7 @@ import {
   Flame, 
   Award,
   Share2,
-  CheckSquare,
-  Sparkle
+  CheckSquare
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { ThemeSwitcher } from '../common/ThemeSwitcher';

@@ -7,9 +7,9 @@ import {
   Check, 
   Copy, 
   Activity, 
-  Send,
-  ArrowLeftRight,
-  Sparkles,
+  Send, 
+  ArrowLeftRight, 
+  Cpu, 
 } from 'lucide-react';
 import { LiveInterpretationTurn } from '../../types';
 import { translateText } from '../../services/aiProcessingService';
@@ -239,7 +239,7 @@ export const LiveInterpretationView: React.FC = () => {
                 Sub-Second Neural Pipeline
               </span>
               <span className="rounded-md bg-indigo-500/10 px-2 py-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center gap-1">
-                <Sparkles className="h-3 w-3" />
+                <Cpu className="h-3 w-3" />
                 50+ World Languages
               </span>
             </div>

@@ -6,7 +6,7 @@ import {
   Play, 
   UploadCloud, 
   FileAudio, 
-  Sparkles, 
+  CheckSquare, 
   FileText,
   RefreshCw
 } from 'lucide-react';
@@ -438,7 +438,7 @@ export const LiveRecorder: React.FC = () => {
                 : 'text-theme-secondary hover:bg-card-subtle-theme hover:text-theme-primary'
             }`}
           >
-            <Sparkles className="h-4 w-4 text-emerald-400" />
+            <CheckSquare className="h-4 w-4 text-emerald-400" />
             <span>AI Executive Notes & Action Items</span>
           </button>
         </div>

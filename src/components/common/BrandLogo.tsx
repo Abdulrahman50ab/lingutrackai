@@ -44,11 +44,6 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
               <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.85" />
               <stop offset="100%" stopColor="#FFFFFF" stopOpacity="1" />
             </linearGradient>
-
-            <linearGradient id="brandSpark" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FDE047" />
-              <stop offset="100%" stopColor="#F59E0B" />
-            </linearGradient>
           </defs>
 
           {/* Squircle Base */}
@@ -66,12 +61,6 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           <rect x="56" y="26" width="7" height="76" rx="3.5" fill="#FFFFFF" className={animate ? 'animate-pulse' : ''} />
           <rect x="70" y="36" width="6" height="56" rx="3" fill="url(#brandWave)" opacity="0.9" />
           <rect x="82" y="48" width="6" height="32" rx="3" fill="url(#brandWave)" opacity="0.75" />
-
-          {/* Spark Star */}
-          <g transform="translate(86, 22)">
-            <path d="M0,8 C4,8 8,4 8,0 C8,4 12,8 16,8 C12,8 8,12 8,16 C8,12 4,8 0,8 Z" fill="url(#brandSpark)" />
-            <circle cx="8" cy="8" r="1.5" fill="#FFFFFF" />
-          </g>
         </svg>
       </div>
 

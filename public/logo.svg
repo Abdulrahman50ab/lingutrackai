@@ -48,10 +48,4 @@
   
   <!-- Bar 5 (Right Outer) -->
   <rect x="82" y="48" width="6" height="32" rx="3" fill="url(#logoWaveGrad)" opacity="0.75" />
-
-  <!-- AI Intelligence Star / Spark in Top-Right -->
-  <g transform="translate(86, 22)">
-    <path d="M0,8 C4,8 8,4 8,0 C8,4 12,8 16,8 C12,8 8,12 8,16 C8,12 4,8 0,8 Z" fill="url(#logoSparkGrad)" />
-    <circle cx="8" cy="8" r="1.5" fill="#FFFFFF" />
-  </g>
 </svg>
