@@ -293,3 +293,381 @@ export const authService = {
   }
 };
 
+/**
+ * Supabase Company Workspaces, Invite-Only Membership & Real-Time Chat Service
+ */
+export const workspaceService = {
+  /**
+   * Fetch all workspaces that a user owns or belongs to
+   */
+  async fetchWorkspaces(userEmail: string): Promise<any[]> {
+    if (!supabase || !userEmail) return [];
+    try {
+      // 1. Get workspaces where user is the owner
+      const { data: owned, error: err1 } = await supabase
+        .from('workspaces')
+        .select('*')
+        .eq('owner_email', userEmail)
+        .order('created_at', { ascending: false });
+
+      // 2. Get workspaces where user is a member
+      const { data: memberships, error: err2 } = await supabase
+        .from('workspace_members')
+        .select('workspace_id')
+        .eq('user_email', userEmail)
+        .eq('status', 'active');
+
+      const memberWsIds = (memberships || []).map(m => m.workspace_id);
+      let memberWorkspaces: any[] = [];
+      if (memberWsIds.length > 0) {
+        const { data: mWs } = await supabase
+          .from('workspaces')
+          .select('*')
+          .in('id', memberWsIds);
+        if (mWs) memberWorkspaces = mWs;
+      }
+
+      const all = [...(owned || []), ...memberWorkspaces];
+      // Deduplicate by ID
+      const unique = Array.from(new Map(all.map(w => [w.id, w])).values());
+      return unique.map(w => ({
+        id: w.id,
+        name: w.name,
+        companyName: w.company_name,
+        description: w.description,
+        ownerId: w.owner_id,
+        ownerEmail: w.owner_email,
+        plan: w.plan,
+        inviteCode: w.invite_code,
+        icon: w.icon || '🏢',
+        createdAt: w.created_at,
+      }));
+    } catch (err) {
+      console.error('Error fetching workspaces:', err);
+      return [];
+    }
+  },
+
+  /**
+   * Create a new company workspace and add creator as Owner
+   */
+  async createWorkspace(data: {
+    name: string;
+    companyName?: string;
+    description?: string;
+    ownerId: string;
+    ownerEmail: string;
+    ownerName: string;
+    ownerAvatar?: string;
+  }): Promise<any | null> {
+    if (!supabase) return null;
+    try {
+      const inviteCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      const wsPayload = {
+        name: data.name,
+        company_name: data.companyName || data.name,
+        description: data.description || '',
+        owner_id: data.ownerId,
+        owner_email: data.ownerEmail,
+        invite_code: inviteCode,
+        plan: 'team',
+      };
+
+      const { data: newWs, error } = await supabase
+        .from('workspaces')
+        .insert(wsPayload)
+        .select()
+        .single();
+
+      if (error || !newWs) throw error || new Error('Failed to create workspace');
+
+      // Add owner as active 'Owner' member
+      await supabase.from('workspace_members').insert({
+        workspace_id: newWs.id,
+        user_id: data.ownerId,
+        user_email: data.ownerEmail,
+        user_name: data.ownerName,
+        avatar: data.ownerAvatar || '',
+        role: 'Owner',
+        status: 'active',
+        invited_by: 'Self',
+      });
+
+      return {
+        id: newWs.id,
+        name: newWs.name,
+        companyName: newWs.company_name,
+        description: newWs.description,
+        ownerId: newWs.owner_id,
+        ownerEmail: newWs.owner_email,
+        plan: newWs.plan,
+        inviteCode: newWs.invite_code,
+        icon: newWs.icon || '🏢',
+        createdAt: newWs.created_at,
+      };
+    } catch (err) {
+      console.error('Error creating workspace:', err);
+      return null;
+    }
+  },
+
+  /**
+   * Fetch members of a specific workspace
+   */
+  async fetchMembers(workspaceId: string): Promise<any[]> {
+    if (!supabase || !workspaceId) return [];
+    try {
+      const { data, error } = await supabase
+        .from('workspace_members')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .order('joined_at', { ascending: true });
+
+      if (error || !data) return [];
+      return data.map(m => ({
+        id: m.id,
+        workspaceId: m.workspace_id,
+        userId: m.user_id,
+        userEmail: m.user_email,
+        userName: m.user_name,
+        avatar: m.avatar,
+        role: m.role,
+        status: m.status,
+        languages: m.languages || ['English', 'Urdu'],
+        invitedBy: m.invited_by,
+        joinedAt: m.joined_at,
+      }));
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Invite member to workspace (Strictly controlled by Owner/Admin)
+   */
+  async inviteMember(data: {
+    workspaceId: string;
+    userEmail: string;
+    userName: string;
+    role: 'Admin' | 'Member' | 'Translator' | 'Viewer';
+    invitedBy: string;
+  }): Promise<any | null> {
+    if (!supabase) return null;
+    try {
+      const payload = {
+        workspace_id: data.workspaceId,
+        user_email: data.userEmail.toLowerCase().trim(),
+        user_name: data.userName,
+        role: data.role,
+        status: 'invited',
+        invited_by: data.invitedBy,
+      };
+
+      const { data: result, error } = await supabase
+        .from('workspace_members')
+        .upsert(payload, { onConflict: 'workspace_id,user_email' })
+        .select()
+        .single();
+
+      if (error || !result) throw error;
+      return result;
+    } catch (err) {
+      console.error('Error inviting member:', err);
+      return null;
+    }
+  },
+
+  /**
+   * Remove member from workspace
+   */
+  async removeMember(workspaceId: string, memberId: string): Promise<boolean> {
+    if (!supabase) return false;
+    try {
+      const { error } = await supabase
+        .from('workspace_members')
+        .delete()
+        .eq('workspace_id', workspaceId)
+        .eq('id', memberId);
+      return !error;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Join workspace via invite code
+   */
+  async joinWorkspaceByCode(inviteCode: string, user: { id: string; email: string; name: string; avatar?: string }): Promise<any | null> {
+    if (!supabase || !inviteCode) return null;
+    try {
+      const { data: ws, error } = await supabase
+        .from('workspaces')
+        .select('*')
+        .eq('invite_code', inviteCode.trim().toUpperCase())
+        .single();
+
+      if (error || !ws) throw new Error('Invalid workspace invite code');
+
+      // Add or activate member in workspace
+      await supabase.from('workspace_members').upsert({
+        workspace_id: ws.id,
+        user_id: user.id,
+        user_email: user.email.toLowerCase().trim(),
+        user_name: user.name,
+        avatar: user.avatar || '',
+        role: 'Member',
+        status: 'active',
+        invited_by: ws.owner_email,
+      }, { onConflict: 'workspace_id,user_email' });
+
+      return ws;
+    } catch (err) {
+      console.error('Error joining workspace:', err);
+      return null;
+    }
+  },
+
+  /**
+   * Fetch chat messages for workspace
+   */
+  async fetchMessages(workspaceId: string): Promise<any[]> {
+    if (!supabase || !workspaceId) return [];
+    try {
+      const { data, error } = await supabase
+        .from('workspace_messages')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .order('created_at', { ascending: true })
+        .limit(100);
+
+      if (error || !data) return [];
+      return data.map(msg => ({
+        id: msg.id,
+        workspaceId: msg.workspace_id,
+        senderId: msg.sender_id,
+        senderName: msg.sender_name,
+        senderEmail: msg.sender_email,
+        senderAvatar: msg.sender_avatar,
+        senderRole: msg.sender_role,
+        content: msg.content,
+        urduTranslation: msg.urdu_translation,
+        romanUrduText: msg.roman_urdu_text,
+        meetingAttachmentId: msg.meeting_attachment_id,
+        meetingAttachmentTitle: msg.meeting_attachment_title,
+        reactions: msg.reactions || [],
+        createdAt: msg.created_at,
+      }));
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Send a message to the workspace real-time chat
+   */
+  async sendMessage(message: {
+    workspaceId: string;
+    senderId: string;
+    senderName: string;
+    senderEmail: string;
+    senderAvatar?: string;
+    senderRole?: string;
+    content: string;
+    urduTranslation?: string;
+    romanUrduText?: string;
+    meetingAttachmentId?: string;
+    meetingAttachmentTitle?: string;
+  }): Promise<any | null> {
+    if (!supabase) return null;
+    try {
+      const payload = {
+        workspace_id: message.workspaceId,
+        sender_id: message.senderId,
+        sender_name: message.senderName,
+        sender_email: message.senderEmail,
+        sender_avatar: message.senderAvatar || '',
+        sender_role: message.senderRole || 'Member',
+        content: message.content,
+        urdu_translation: message.urduTranslation || null,
+        roman_urdu_text: message.romanUrduText || null,
+        meeting_attachment_id: message.meetingAttachmentId || null,
+        meeting_attachment_title: message.meetingAttachmentTitle || null,
+        reactions: [],
+      };
+
+      const { data, error } = await supabase
+        .from('workspace_messages')
+        .insert(payload)
+        .select()
+        .single();
+
+      if (error || !data) throw error;
+      return {
+        id: data.id,
+        workspaceId: data.workspace_id,
+        senderId: data.sender_id,
+        senderName: data.sender_name,
+        senderEmail: data.sender_email,
+        senderAvatar: data.sender_avatar,
+        senderRole: data.sender_role,
+        content: data.content,
+        urduTranslation: data.urdu_translation,
+        romanUrduText: data.roman_urdu_text,
+        meetingAttachmentId: data.meeting_attachment_id,
+        meetingAttachmentTitle: data.meeting_attachment_title,
+        reactions: data.reactions || [],
+        createdAt: data.created_at,
+      };
+    } catch (err) {
+      console.error('Error sending message:', err);
+      return null;
+    }
+  },
+
+  /**
+   * Subscribe to real-time chat messages
+   */
+  subscribeToMessages(workspaceId: string, onNewMessage: (msg: any) => void) {
+    if (!supabase || !workspaceId) return { unsubscribe: () => {} };
+    const channel = supabase
+      .channel(`workspace_chat_${workspaceId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'workspace_messages',
+          filter: `workspace_id=eq.${workspaceId}`,
+        },
+        (payload) => {
+          if (payload.new) {
+            const raw = payload.new;
+            onNewMessage({
+              id: raw.id,
+              workspaceId: raw.workspace_id,
+              senderId: raw.sender_id,
+              senderName: raw.sender_name,
+              senderEmail: raw.sender_email,
+              senderAvatar: raw.sender_avatar,
+              senderRole: raw.sender_role,
+              content: raw.content,
+              urduTranslation: raw.urdu_translation,
+              romanUrduText: raw.roman_urdu_text,
+              meetingAttachmentId: raw.meeting_attachment_id,
+              meetingAttachmentTitle: raw.meeting_attachment_title,
+              reactions: raw.reactions || [],
+              createdAt: raw.created_at,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return {
+      unsubscribe: () => {
+        supabase.removeChannel(channel);
+      }
+    };
+  }
+};
+

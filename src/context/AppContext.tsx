@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { MeetingSession, UserProfile, ActiveTab, ActionItem, ThemeMode } from '../types';
+import { MeetingSession, UserProfile, ActiveTab, ActionItem, ThemeMode, CompanyWorkspace, WorkspaceMember, WorkspaceMessage } from '../types';
 import { sampleMeetings, demoSampleMeetings, initialUserProfile } from '../data/mockMeetings';
-import { supabaseService, authService, isSupabaseConfigured } from '../services/supabaseClient';
+import { supabaseService, authService, workspaceService, isSupabaseConfigured } from '../services/supabaseClient';
 
 interface AppContextType {
   activeTab: ActiveTab;
@@ -43,6 +43,18 @@ interface AppContextType {
   setCurrentUser: (user: any) => void;
   isAuthenticated: boolean;
   logout: () => Promise<void>;
+  // Company Workspaces & Real-Time Chat
+  workspaces: CompanyWorkspace[];
+  activeWorkspace: CompanyWorkspace | null;
+  setActiveWorkspace: (ws: CompanyWorkspace | null) => void;
+  workspaceMembers: WorkspaceMember[];
+  workspaceMessages: WorkspaceMessage[];
+  createWorkspace: (name: string, companyName?: string, description?: string) => Promise<CompanyWorkspace | null>;
+  inviteMemberToWorkspace: (email: string, role: 'Admin' | 'Member' | 'Translator' | 'Viewer', name?: string) => Promise<boolean>;
+  removeMemberFromWorkspace: (memberId: string) => Promise<boolean>;
+  joinWorkspaceWithCode: (inviteCode: string) => Promise<boolean>;
+  sendWorkspaceMessage: (content: string, meetingAttachment?: { id: string; title: string }) => Promise<boolean>;
+  refreshWorkspaceData: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -379,6 +391,170 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  // Company Workspaces & Real-Time Chat State
+  const [workspaces, setWorkspaces] = useState<CompanyWorkspace[]>([]);
+  const [activeWorkspace, setActiveWorkspace] = useState<CompanyWorkspace | null>(null);
+  const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
+  const [workspaceMessages, setWorkspaceMessages] = useState<WorkspaceMessage[]>([]);
+
+  // Refresh workspace data
+  const refreshWorkspaceData = async () => {
+    if (!isSupabaseConfigured || !userProfile.email || userProfile.email === 'user@lingutrack.ai') return;
+    try {
+      const list = await workspaceService.fetchWorkspaces(userProfile.email);
+      setWorkspaces(list);
+      if (list.length > 0) {
+        const current = activeWorkspace ? (list.find(w => w.id === activeWorkspace.id) || list[0]) : list[0];
+        setActiveWorkspace(current);
+        const members = await workspaceService.fetchMembers(current.id);
+        setWorkspaceMembers(members);
+        const msgs = await workspaceService.fetchMessages(current.id);
+        setWorkspaceMessages(msgs);
+      } else {
+        // Auto-provision initial private company workspace for the user
+        const initialWs = await workspaceService.createWorkspace({
+          name: `${userProfile.name ? userProfile.name.split(' ')[0] : 'Company'}'s Workspace`,
+          companyName: userProfile.organization || 'My Organization',
+          description: 'Primary private workspace for cross-language collaboration and team meetings.',
+          ownerId: currentUser?.id || `usr-${Date.now()}`,
+          ownerEmail: userProfile.email,
+          ownerName: userProfile.name || 'Workspace Owner',
+          ownerAvatar: userProfile.avatar || '',
+        });
+        if (initialWs) {
+          setWorkspaces([initialWs]);
+          setActiveWorkspace(initialWs);
+          const members = await workspaceService.fetchMembers(initialWs.id);
+          setWorkspaceMembers(members);
+          setWorkspaceMessages([]);
+        }
+      }
+    } catch (e) {
+      console.error('Error loading workspace data:', e);
+    }
+  };
+
+  // Auto load workspace when profile email is available
+  useEffect(() => {
+    if (userProfile.email && userProfile.email !== 'user@lingutrack.ai') {
+      refreshWorkspaceData();
+    }
+  }, [userProfile.email]);
+
+  // Load members and messages whenever activeWorkspace changes
+  useEffect(() => {
+    if (activeWorkspace?.id) {
+      workspaceService.fetchMembers(activeWorkspace.id).then(setWorkspaceMembers);
+      workspaceService.fetchMessages(activeWorkspace.id).then(setWorkspaceMessages);
+
+      // Subscribe to real-time chat
+      const sub = workspaceService.subscribeToMessages(activeWorkspace.id, (newMsg) => {
+        setWorkspaceMessages(prev => {
+          if (prev.some(m => m.id === newMsg.id)) return prev;
+          return [...prev, newMsg];
+        });
+      });
+
+      return () => {
+        sub.unsubscribe();
+      };
+    }
+  }, [activeWorkspace?.id]);
+
+  // Create Workspace
+  const createWorkspace = async (name: string, companyName?: string, description?: string): Promise<CompanyWorkspace | null> => {
+    if (!userProfile.email) return null;
+    const ws = await workspaceService.createWorkspace({
+      name,
+      companyName: companyName || name,
+      description: description || '',
+      ownerId: currentUser?.id || `usr-${Date.now()}`,
+      ownerEmail: userProfile.email,
+      ownerName: userProfile.name || 'Workspace Owner',
+      ownerAvatar: userProfile.avatar || '',
+    });
+
+    if (ws) {
+      setWorkspaces(prev => [ws, ...prev]);
+      setActiveWorkspace(ws);
+      const members = await workspaceService.fetchMembers(ws.id);
+      setWorkspaceMembers(members);
+      setWorkspaceMessages([]);
+    }
+    return ws;
+  };
+
+  // Invite Member (Strictly Owner/Admin)
+  const inviteMemberToWorkspace = async (email: string, role: 'Admin' | 'Member' | 'Translator' | 'Viewer', name?: string): Promise<boolean> => {
+    if (!activeWorkspace?.id || !userProfile.email) return false;
+    const result = await workspaceService.inviteMember({
+      workspaceId: activeWorkspace.id,
+      userEmail: email,
+      userName: name || email.split('@')[0],
+      role,
+      invitedBy: userProfile.name || userProfile.email,
+    });
+
+    if (result) {
+      const updatedMembers = await workspaceService.fetchMembers(activeWorkspace.id);
+      setWorkspaceMembers(updatedMembers);
+      return true;
+    }
+    return false;
+  };
+
+  // Remove Member
+  const removeMemberFromWorkspace = async (memberId: string): Promise<boolean> => {
+    if (!activeWorkspace?.id) return false;
+    const ok = await workspaceService.removeMember(activeWorkspace.id, memberId);
+    if (ok) {
+      setWorkspaceMembers(prev => prev.filter(m => m.id !== memberId));
+    }
+    return ok;
+  };
+
+  // Join with Invite Code
+  const joinWorkspaceWithCode = async (inviteCode: string): Promise<boolean> => {
+    if (!userProfile.email) return false;
+    const joinedWs = await workspaceService.joinWorkspaceByCode(inviteCode, {
+      id: currentUser?.id || `usr-${Date.now()}`,
+      email: userProfile.email,
+      name: userProfile.name || 'Team Member',
+      avatar: userProfile.avatar || '',
+    });
+
+    if (joinedWs) {
+      await refreshWorkspaceData();
+      return true;
+    }
+    return false;
+  };
+
+  // Send Chat Message
+  const sendWorkspaceMessage = async (content: string, meetingAttachment?: { id: string; title: string }): Promise<boolean> => {
+    if (!activeWorkspace?.id || !content.trim()) return false;
+    const msg = await workspaceService.sendMessage({
+      workspaceId: activeWorkspace.id,
+      senderId: currentUser?.id || `usr-${Date.now()}`,
+      senderName: userProfile.name || 'Team Member',
+      senderEmail: userProfile.email,
+      senderAvatar: userProfile.avatar || '',
+      senderRole: activeWorkspace.ownerEmail === userProfile.email ? 'Owner' : 'Member',
+      content,
+      meetingAttachmentId: meetingAttachment?.id,
+      meetingAttachmentTitle: meetingAttachment?.title,
+    });
+
+    if (msg) {
+      setWorkspaceMessages(prev => {
+        if (prev.some(m => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
+      return true;
+    }
+    return false;
+  };
+
   const loadDemoData = () => {
     setMeetings(demoSampleMeetings);
     setActiveMeeting(demoSampleMeetings[0] || null);
@@ -435,6 +611,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentUser,
         isAuthenticated: Boolean(currentUser),
         logout,
+        // Company Workspaces & Real-Time Chat
+        workspaces,
+        activeWorkspace,
+        setActiveWorkspace,
+        workspaceMembers,
+        workspaceMessages,
+        createWorkspace,
+        inviteMemberToWorkspace,
+        removeMemberFromWorkspace,
+        joinWorkspaceWithCode,
+        sendWorkspaceMessage,
+        refreshWorkspaceData,
       }}
     >
       {children}

@@ -265,7 +265,7 @@ export const LiveRecorder: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="rounded-md bg-indigo-500/10 px-2 py-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center gap-1.5">
-                <Mic className="h-3 w-3" /> Speech Studio
+                <Mic className="h-3 w-3" /> Live Mic Studio
               </span>
               <span className="text-xs text-theme-muted">
                 English ⇄ Urdu, Roman Urdu & Global 50+ Languages

@@ -137,3 +137,48 @@ export type ActiveTab =
   | 'settings';
 
 export type ThemeMode = 'light' | 'dark' | 'emerald' | 'midnight';
+
+export interface CompanyWorkspace {
+  id: string;
+  name: string;
+  companyName?: string;
+  description?: string;
+  ownerId: string;
+  ownerEmail: string;
+  plan: 'freemium' | 'solo' | 'team' | 'enterprise';
+  inviteCode: string;
+  icon?: string;
+  createdAt: string;
+  membersCount?: number;
+}
+
+export interface WorkspaceMember {
+  id: string;
+  workspaceId: string;
+  userId?: string;
+  userEmail: string;
+  userName: string;
+  avatar?: string;
+  role: 'Owner' | 'Admin' | 'Member' | 'Translator' | 'Viewer';
+  status: 'active' | 'invited' | 'pending';
+  languages?: string[];
+  invitedBy?: string;
+  joinedAt: string;
+}
+
+export interface WorkspaceMessage {
+  id: string;
+  workspaceId: string;
+  senderId: string;
+  senderName: string;
+  senderEmail: string;
+  senderAvatar?: string;
+  senderRole?: string;
+  content: string;
+  urduTranslation?: string;
+  romanUrduText?: string;
+  meetingAttachmentId?: string;
+  meetingAttachmentTitle?: string;
+  reactions?: Array<{ emoji: string; count: number; users: string[] }>;
+  createdAt: string;
+}
