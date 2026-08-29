@@ -118,11 +118,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const logout = async () => {
     try {
       await authService.signOut();
+      localStorage.removeItem(STORAGE_KEY_PROFILE);
+      localStorage.removeItem(STORAGE_KEY_MEETINGS);
       setCurrentUser(null);
       setUserProfile(initialUserProfile);
       setActiveTab('landing');
     } catch (e) {
       console.error('Error logging out:', e);
+      localStorage.removeItem(STORAGE_KEY_PROFILE);
+      localStorage.removeItem(STORAGE_KEY_MEETINGS);
+      setCurrentUser(null);
+      setUserProfile(initialUserProfile);
+      setActiveTab('landing');
     }
   };
 
@@ -144,11 +151,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Check initial active session
       authService.getSession().then(session => {
         if (session?.user) {
-          setCurrentUser(session.user);
+          const user = session.user;
+          const userName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+          const userEmail = user.email || '';
+          const userAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || undefined;
+
+          setCurrentUser(user);
           setUserProfile(prev => ({
             ...prev,
-            email: session.user.email || prev.email,
-            name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || prev.name,
+            name: userName,
+            email: userEmail,
+            avatar: userAvatar || prev.avatar,
           }));
           setActiveTab('record-upload');
           if (window.location.hash) {
@@ -160,11 +173,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Subscribe to auth changes
       const { data: authSubscription } = authService.onAuthStateChange((event, session) => {
         if (session?.user) {
-          setCurrentUser(session.user);
+          const user = session.user;
+          const userName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+          const userEmail = user.email || '';
+          const userAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || undefined;
+
+          setCurrentUser(user);
           setUserProfile(prev => ({
             ...prev,
-            email: session.user.email || prev.email,
-            name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || prev.name,
+            name: userName,
+            email: userEmail,
+            avatar: userAvatar || prev.avatar,
           }));
           if (event === 'SIGNED_IN') {
             setActiveTab('record-upload');
@@ -179,7 +198,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             }
           });
           supabaseService.fetchUserProfile().then(remoteProfile => {
-            if (remoteProfile) {
+            if (remoteProfile && remoteProfile.email === userEmail) {
               setUserProfile(remoteProfile);
             }
           });
