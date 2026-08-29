@@ -112,14 +112,31 @@ async function runEnhancedTestSuite() {
       }
     });
 
-    await testStep('Navigation', 'Launch App Workspace from Landing Page CTA', async () => {
+    await testStep('Navigation', 'Launch App Workspace from Landing Page CTA & Authenticate', async () => {
       await page.locator('[data-testid="launch-app-btn"]').first().click({ force: true });
-      await page.waitForTimeout(500);
-      const inApp = await page.evaluate(() => document.body.innerText.includes('Live Mic Studio') || document.body.innerText.includes('Core Modules'));
-      if (!inApp) {
-        await page.locator('button:has-text("Start Free Transcription")').first().click({ force: true });
-        await page.waitForTimeout(500);
+      await page.waitForTimeout(400);
+
+      // Switch to Sign Up mode in Auth Modal
+      const signUpBtn = page.locator('div[class*="rounded-xl"] button:has-text("Sign Up")').first();
+      if (await signUpBtn.count() > 0) {
+        await signUpBtn.click({ force: true });
+        await page.waitForTimeout(200);
       }
+
+      const emailInput = page.locator('input[type="email"]');
+      if (await emailInput.count() > 0) {
+        const testEmail = `tester_${Date.now()}@lingutrack.ai`;
+        await emailInput.first().fill(testEmail);
+        const nameInput = page.locator('input[placeholder*="Sarah"]');
+        if (await nameInput.count() > 0) {
+          await nameInput.first().fill('E2E Tester');
+        }
+        await page.locator('input[type="password"]').first().fill('SecurePass123!');
+        await page.locator('button[type="submit"]').first().click({ force: true });
+        await page.waitForTimeout(1600);
+      }
+
+      await page.waitForSelector('text=Live Mic Studio', { timeout: 6000 });
     });
 
     // ---------------------------------------------------------

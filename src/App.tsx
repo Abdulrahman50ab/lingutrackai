@@ -14,11 +14,11 @@ import { LandingPage } from './components/landing/LandingPage';
 import { Menu, X } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
-  const { activeTab } = useApp();
+  const { activeTab, isAuthenticated } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // If activeTab is 'landing', render full marketing portal
-  if (activeTab === 'landing') {
+  // If activeTab is 'landing' OR user is not authenticated, render full marketing portal with auth modals
+  if (activeTab === 'landing' || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-app-theme text-theme-primary">
         <LandingPage />

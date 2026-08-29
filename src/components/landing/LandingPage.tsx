@@ -32,7 +32,7 @@ import { BrandLogo } from '../common/BrandLogo';
 import { WORLD_LANGUAGES, getLanguageByCode } from '../../services/languagesData';
 
 export const LandingPage: React.FC = () => {
-  const { setActiveTab, setIsUpgradeModalOpen, openAuthModal, theme } = useApp();
+  const { setActiveTab, setIsUpgradeModalOpen, openAuthModal, isAuthenticated, theme } = useApp();
 
   // Hero Interactive Demo State
   const [demoActiveLang, setDemoActiveLang] = useState<'ur' | 'es' | 'ar' | 'zh' | 'fr'>('ur');
@@ -159,10 +159,16 @@ export const LandingPage: React.FC = () => {
             <button
               type="button"
               data-testid="launch-app-btn"
-              onClick={() => setActiveTab('record-upload')}
+              onClick={() => {
+                if (isAuthenticated) {
+                  setActiveTab('record-upload');
+                } else {
+                  openAuthModal('signin');
+                }
+              }}
               className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-indigo-500/20 hover:from-indigo-500 hover:to-violet-500 transition-all hover:scale-[1.02] cursor-pointer"
             >
-              <span>Launch App</span>
+              <span>{isAuthenticated ? 'Enter Workspace' : 'Launch App'}</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -192,16 +198,28 @@ export const LandingPage: React.FC = () => {
           {/* Hero Action Buttons */}
           <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
             <button
-              onClick={() => setActiveTab('record-upload')}
-              className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-indigo-500/25 hover:from-indigo-500 hover:to-violet-500 transition-all hover:scale-[1.02]"
+              onClick={() => {
+                if (isAuthenticated) {
+                  setActiveTab('record-upload');
+                } else {
+                  openAuthModal('signup');
+                }
+              }}
+              className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-indigo-500/25 hover:from-indigo-500 hover:to-violet-500 transition-all hover:scale-[1.02] cursor-pointer"
             >
               <Mic className="h-4 w-4" />
               <span>Start Free Transcription</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('live-interpretation')}
-              className="flex items-center gap-2 rounded-2xl border border-theme bg-card-theme px-6 py-3.5 text-sm font-bold text-theme-primary shadow-sm hover:border-indigo-500 hover:bg-card-subtle-theme transition-all"
+              onClick={() => {
+                if (isAuthenticated) {
+                  setActiveTab('live-interpretation');
+                } else {
+                  openAuthModal('signin');
+                }
+              }}
+              className="flex items-center gap-2 rounded-2xl border border-theme bg-card-theme px-6 py-3.5 text-sm font-bold text-theme-primary shadow-sm hover:border-indigo-500 hover:bg-card-subtle-theme transition-all cursor-pointer"
             >
               <Globe2 className="h-4 w-4 text-indigo-500" />
               <span>Live Interpretation (EN ↔ UR)</span>
@@ -1077,16 +1095,28 @@ export const LandingPage: React.FC = () => {
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <button
-              onClick={() => setActiveTab('record-upload')}
-              className="flex items-center gap-2 rounded-2xl bg-white px-7 py-3.5 text-xs font-extrabold text-indigo-900 shadow-xl hover:bg-slate-100 transition-all hover:scale-105"
+              onClick={() => {
+                if (isAuthenticated) {
+                  setActiveTab('record-upload');
+                } else {
+                  openAuthModal('signup');
+                }
+              }}
+              className="flex items-center gap-2 rounded-2xl bg-white px-7 py-3.5 text-xs font-extrabold text-indigo-900 shadow-xl hover:bg-slate-100 transition-all hover:scale-105 cursor-pointer"
             >
               <Mic className="h-4 w-4 text-indigo-600" />
               <span>Get Started Free (30 Mins)</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('live-interpretation')}
-              className="flex items-center gap-2 rounded-2xl border border-white/30 bg-white/10 backdrop-blur-md px-7 py-3.5 text-xs font-bold text-white hover:bg-white/20 transition-all"
+              onClick={() => {
+                if (isAuthenticated) {
+                  setActiveTab('live-interpretation');
+                } else {
+                  openAuthModal('signin');
+                }
+              }}
+              className="flex items-center gap-2 rounded-2xl border border-white/30 bg-white/10 backdrop-blur-md px-7 py-3.5 text-xs font-bold text-white hover:bg-white/20 transition-all cursor-pointer"
             >
               <Globe2 className="h-4 w-4" />
               <span>Try Live Interpretation</span>
@@ -1111,10 +1141,10 @@ export const LandingPage: React.FC = () => {
             <div className="space-y-2.5">
               <div className="font-bold text-theme-primary text-xs uppercase tracking-wider">Product</div>
               <ul className="space-y-1.5">
-                <li><button onClick={() => setActiveTab('record-upload')} className="hover:text-indigo-600">Audio Transcription</button></li>
-                <li><button onClick={() => setActiveTab('live-interpretation')} className="hover:text-indigo-600">Live Interpretation</button></li>
-                <li><button onClick={() => setActiveTab('meeting-archive')} className="hover:text-indigo-600">Meeting Archive</button></li>
-                <li><button onClick={() => setActiveTab('action-items')} className="hover:text-indigo-600">Action Items Hub</button></li>
+                <li><button onClick={() => isAuthenticated ? setActiveTab('record-upload') : openAuthModal('signin')} className="hover:text-indigo-600 cursor-pointer">Audio Transcription</button></li>
+                <li><button onClick={() => isAuthenticated ? setActiveTab('live-interpretation') : openAuthModal('signin')} className="hover:text-indigo-600 cursor-pointer">Live Interpretation</button></li>
+                <li><button onClick={() => isAuthenticated ? setActiveTab('meeting-archive') : openAuthModal('signin')} className="hover:text-indigo-600 cursor-pointer">Meeting Archive</button></li>
+                <li><button onClick={() => isAuthenticated ? setActiveTab('action-items') : openAuthModal('signin')} className="hover:text-indigo-600 cursor-pointer">Action Items Hub</button></li>
               </ul>
             </div>
 

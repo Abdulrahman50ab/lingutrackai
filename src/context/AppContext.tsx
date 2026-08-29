@@ -40,6 +40,7 @@ interface AppContextType {
   setAuthModalMode: (mode: 'signin' | 'signup') => void;
   openAuthModal: (mode?: 'signin' | 'signup') => void;
   currentUser: any | null;
+  setCurrentUser: (user: any) => void;
   isAuthenticated: boolean;
   logout: () => Promise<void>;
 }
@@ -385,6 +386,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setAuthModalMode,
         openAuthModal,
         currentUser,
+        setCurrentUser,
         isAuthenticated: Boolean(currentUser),
         logout,
       }}
