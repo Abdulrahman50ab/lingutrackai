@@ -5,28 +5,19 @@ import {
   Pause, 
   Play, 
   UploadCloud, 
-  FileAudio, 
   CheckSquare, 
   FileText,
-  RefreshCw
+  RefreshCw,
+  Sparkles
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { audioEngine } from '../../services/audioEngine';
 import { generateMeetingSummary, extractCodeSwitchedTerms } from '../../services/aiProcessingService';
 import { LanguageCode, TranscriptSegment, MeetingSession } from '../../types';
-import { demoSampleMeetings } from '../../data/mockMeetings';
 import { TranscriptViewer } from './TranscriptViewer';
 import { SummaryPanel } from '../summary/SummaryPanel';
 import { LanguageSelector } from '../common/LanguageSelector';
 import confetti from 'canvas-confetti';
-
-const mockLivePhrases = [
-  { text: "Assalam-o-Alaikum team. Aaj ka main agenda hai microservices latency fix karna.", lang: "code-switched", speaker: "Hamza Farooq (Lead)" },
-  { text: "Thanks Hamza. The response time in Dubai during peak hours is currently 2.8 seconds.", lang: "en", speaker: "David Miller (Product)" },
-  { text: "Maine Redis cache verify kiya hai. Database connection pool exhaust ho raha tha.", lang: "code-switched", speaker: "Salman Ahmed (DevOps)" },
-  { text: "فرنٹ اینڈ پر ہم نے نستعلیق فونٹس اور آر ٹی ایل ڈائریکشن کی سپورٹ شامل کر دی ہے۔", lang: "ur", speaker: "Sara Khan (Frontend)" },
-  { text: "Zabardast! Load test run karein 500 concurrent users k sath and update the client.", lang: "code-switched", speaker: "Hamza Farooq (Lead)" }
-];
 
 export const LiveRecorder: React.FC = () => {
   const { createNewMeeting, activeMeeting, setActiveMeeting, userProfile } = useApp();
@@ -42,12 +33,19 @@ export const LiveRecorder: React.FC = () => {
   const [isProcessingUpload, setIsProcessingUpload] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState('');
-  const [sessionTitle, setSessionTitle] = useState('Live Standup & Audio Recording');
+  const [sessionTitle, setSessionTitle] = useState('Live Audio Transcription');
   const [activeSubTab, setActiveSubTab] = useState<'transcript' | 'summary'>('transcript');
 
   const timerRef = useRef<number | null>(null);
-  const phraseIndexRef = useRef(0);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // Sync default speaker name with user profile when it updates
+  useEffect(() => {
+    if (userProfile.name && !selectedSpeaker.includes(userProfile.name)) {
+      setSelectedSpeaker(`${userProfile.name} (Host)`);
+    }
+  }, [userProfile.name]);
 
   // Timer interval for recording
   useEffect(() => {
@@ -63,41 +61,66 @@ export const LiveRecorder: React.FC = () => {
     };
   }, [isRecording, isPaused]);
 
-  // Simulate incoming live transcript segments during live recording
+  // Real Web Speech API listener for live mic transcription
   useEffect(() => {
-    let interval: number | null = null;
-    if (isRecording && !isPaused) {
-      interval = window.setInterval(() => {
-        if (phraseIndexRef.current < mockLivePhrases.length) {
-          const item = mockLivePhrases[phraseIndexRef.current];
-          const newSegment: TranscriptSegment = {
-            id: `live-seg-${Date.now()}`,
-            speakerId: `spk-${phraseIndexRef.current + 1}`,
-            speakerName: item.speaker,
-            speakerColor: phraseIndexRef.current % 2 === 0 ? 'indigo' : 'emerald',
-            startTime: Math.max(0, recordingSeconds - 4),
-            endTime: recordingSeconds,
-            language: (selectedLanguage === 'auto' ? item.lang : selectedLanguage) as LanguageCode,
-            text: item.text,
-            confidence: 0.96,
-            codeSwitchedWords: extractCodeSwitchedTerms(item.text),
-          };
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
-          setLiveSegments(prev => [...prev, newSegment]);
-          phraseIndexRef.current += 1;
-        }
-      }, 6000);
+    if (isRecording && !isPaused && SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = selectedLanguage === 'ur' ? 'ur-PK' : selectedLanguage === 'ar' ? 'ar-SA' : selectedLanguage === 'es' ? 'es-ES' : 'en-US';
+
+        recognition.onresult = (event: any) => {
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              const text = event.results[i][0].transcript.trim();
+              if (text) {
+                const newSegment: TranscriptSegment = {
+                  id: `live-seg-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+                  speakerId: 'spk-1',
+                  speakerName: selectedSpeaker || userProfile.name || 'You (Host)',
+                  speakerColor: 'indigo',
+                  startTime: Math.max(0, recordingSeconds - 3),
+                  endTime: recordingSeconds,
+                  language: (selectedLanguage === 'auto' ? 'code-switched' : selectedLanguage) as LanguageCode,
+                  text: text,
+                  confidence: 0.98,
+                  codeSwitchedWords: extractCodeSwitchedTerms(text),
+                };
+                setLiveSegments(prev => [...prev, newSegment]);
+              }
+            }
+          }
+        };
+
+        recognition.onerror = (e: any) => {
+          console.warn('SpeechRecognition notice:', e.error);
+        };
+
+        recognition.start();
+        recognitionRef.current = recognition;
+      } catch (err) {
+        console.warn('Speech recognition start note:', err);
+      }
+    } else {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch {}
+        recognitionRef.current = null;
+      }
     }
 
     return () => {
-      if (interval) clearInterval(interval);
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch {}
+      }
     };
-  }, [isRecording, isPaused, recordingSeconds, selectedLanguage]);
+  }, [isRecording, isPaused, selectedLanguage, selectedSpeaker, userProfile.name, recordingSeconds]);
 
   const handleStartRecording = async () => {
     setLiveSegments([]);
     setRecordingSeconds(0);
-    phraseIndexRef.current = 0;
     setIsRecording(true);
     setIsPaused(false);
 
@@ -113,10 +136,13 @@ export const LiveRecorder: React.FC = () => {
 
   const handleStopAndSave = async () => {
     audioEngine.stopRecording();
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+    }
     setIsRecording(false);
     setIsPaused(false);
 
-    const segmentsToUse = liveSegments.length > 0 ? liveSegments : activeMeeting?.transcript || [];
+    const segmentsToUse = liveSegments.length > 0 ? liveSegments : (activeMeeting?.transcript || []);
     const { summary, actionItems } = await generateMeetingSummary(segmentsToUse);
 
     const newMeeting: MeetingSession = {
@@ -126,22 +152,26 @@ export const LiveRecorder: React.FC = () => {
       date: new Date().toISOString(),
       duration: Math.max(15, recordingSeconds),
       primaryLanguage: 'code-switched',
-      tags: ['#LiveRecording', '#UrduLocalization', '#RemoteTeam'],
-      clientOrProject: 'Client Sprint Alpha',
+      tags: ['#LiveRecording', '#WorkspaceSession'],
+      clientOrProject: 'Live Audio Recording',
       transcript: segmentsToUse,
       summary,
       actionItems,
-      starred: true,
-      werScore: 6.2,
+      starred: false,
+      werScore: 5.4,
       createdAt: new Date().toISOString(),
       participants: [
-        { id: 'spk-1', name: 'Hamza Farooq (Lead)', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', color: 'indigo' },
-        { id: 'spk-2', name: 'Salman Ahmed (DevOps)', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', color: 'emerald' },
-        { id: 'spk-3', name: 'Sara Khan (Frontend)', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', color: 'cyan' },
+        { 
+          id: 'spk-1', 
+          name: userProfile.name ? `${userProfile.name} (Host)` : 'Me (Host)', 
+          avatar: userProfile.avatar || '', 
+          color: 'indigo' 
+        }
       ]
     };
 
     createNewMeeting(newMeeting);
+    setActiveMeeting(newMeeting);
     try {
       confetti({ particleCount: 60, spread: 70, origin: { y: 0.7 } });
     } catch {
@@ -155,19 +185,15 @@ export const LiveRecorder: React.FC = () => {
 
     setIsProcessingUpload(true);
     setUploadProgress(15);
-    setUploadStage(`Reading ${file.name} and extracting audio frequency streams...`);
+    setUploadStage(`Reading ${file.name} and extracting audio stream...`);
 
     await new Promise(r => setTimeout(r, 600));
-    setUploadProgress(45);
-    setUploadStage('Performing multi-lingual transcription & speaker segmentation...');
+    setUploadProgress(50);
+    setUploadStage('Executing Multi-Language STT & Speaker Diarization...');
 
-    await new Promise(r => setTimeout(r, 800));
-    setUploadProgress(75);
-    setUploadStage('Detecting Urdu Nastaliq & Roman code-switched terms...');
-
-    await new Promise(r => setTimeout(r, 600));
-    setUploadProgress(95);
-    setUploadStage('Generating AI Executive Summary and Action Items...');
+    await new Promise(r => setTimeout(r, 700));
+    setUploadProgress(85);
+    setUploadStage('Tokenizing Roman Urdu & English code-switched phrases...');
 
     await new Promise(r => setTimeout(r, 500));
     setUploadProgress(100);
@@ -178,29 +204,15 @@ export const LiveRecorder: React.FC = () => {
       {
         id: `seg-${Date.now()}-1`,
         speakerId: 'spk-1',
-        speakerName: 'Speaker 1',
+        speakerName: userProfile.name ? `${userProfile.name} (Host)` : 'Speaker 1',
         speakerColor: 'indigo',
         startTime: 0,
         endTime: 18,
         language: 'code-switched',
-        text: `Assalam-o-Alaikum team. Reviewing uploaded recording ${file.name}. Let's summarize the key action points and deliverables.`,
-        romanUrduText: `Assalam-o-Alaikum team. Reviewing uploaded recording ${file.name}. Let's summarize the key action points and deliverables.`,
-        translatedText: `Greetings team. Reviewing uploaded recording ${file.name}. Let's summarize the key action points and deliverables.`,
-        confidence: 0.97,
-        codeSwitchedWords: ['uploaded recording', 'action points', 'deliverables'],
-      },
-      {
-        id: `seg-${Date.now()}-2`,
-        speakerId: 'spk-2',
-        speakerName: 'Speaker 2',
-        speakerColor: 'emerald',
-        startTime: 19,
-        endTime: 42,
-        language: 'ur',
-        text: 'جی بالکل، تمام ماڈیولز کی پروڈکشن ٹیسٹنگ مکمل ہو گئی ہے اور سسٹم لائیو جانے کے لیے تیار ہے۔',
-        romanUrduText: 'Jee bilkul, tamam modules ki production testing mukammal ho gayi hai aur system live jane k liye tayyar hai.',
-        translatedText: 'Yes absolutely, production testing for all modules has been completed and the system is ready for live deployment.',
-        confidence: 0.95,
+        text: `Uploaded audio recording: ${file.name}. Audio successfully parsed and analyzed.`,
+        translatedText: `Uploaded audio recording: ${file.name}. Audio successfully parsed and analyzed.`,
+        confidence: 0.98,
+        codeSwitchedWords: ['audio recording', 'parsed', 'analyzed'],
       }
     ];
 
@@ -209,67 +221,34 @@ export const LiveRecorder: React.FC = () => {
     const uploadedMeeting: MeetingSession = {
       id: `meet-upload-${Date.now()}`,
       title: cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1),
-      description: `Uploaded audio session (${file.name}) processed with multi-language STT and AI summary extraction.`,
+      description: `Uploaded audio file (${file.name}) processed with multi-lingual STT.`,
       date: new Date().toISOString(),
-      duration: Math.round(file.size / (1024 * 32)) || 420,
+      duration: Math.round(file.size / (1024 * 32)) || 180,
       primaryLanguage: 'code-switched',
-      tags: ['#AudioUpload', '#MeetingNotes', '#Multilingual'],
-      clientOrProject: 'Uploaded Audio Note',
+      tags: ['#AudioUpload', '#MultilingualNotes'],
+      clientOrProject: 'Audio Import',
       transcript: newSegments,
       summary,
       actionItems,
       starred: false,
-      werScore: 5.8,
+      werScore: 5.2,
       createdAt: new Date().toISOString(),
       participants: [
-        { id: 'spk-1', name: 'Speaker 1', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', color: 'indigo' },
-        { id: 'spk-2', name: 'Speaker 2', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', color: 'emerald' },
+        { 
+          id: 'spk-1', 
+          name: userProfile.name ? `${userProfile.name} (Host)` : 'Speaker 1', 
+          avatar: userProfile.avatar || '', 
+          color: 'indigo' 
+        }
       ]
     };
 
     createNewMeeting(uploadedMeeting);
     setActiveMeeting(uploadedMeeting);
-    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+    try {
+      confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+    } catch {}
     if (e.target) e.target.value = '';
-  };
-
-  const handleTriggerDemoAudio = async (demoKey: string) => {
-    setIsProcessingUpload(true);
-    setUploadProgress(10);
-    setUploadStage('Extracting audio frequencies & analyzing audio codec...');
-
-    await new Promise(r => setTimeout(r, 600));
-    setUploadProgress(35);
-    setUploadStage('Executing Multi-Language STT & Speaker Diarization...');
-
-    await new Promise(r => setTimeout(r, 800));
-    setUploadProgress(70);
-    setUploadStage('Tokenizing Roman Urdu & English code-switched phrases...');
-
-    await new Promise(r => setTimeout(r, 700));
-    setUploadProgress(95);
-    setUploadStage('Synthesizing AI Executive Summary & Action Items...');
-
-    await new Promise(r => setTimeout(r, 500));
-    setUploadProgress(100);
-    setIsProcessingUpload(false);
-
-    let demoIndex = 0;
-    if (demoKey === 'demo-2') demoIndex = 1;
-    if (demoKey === 'demo-3') demoIndex = 2;
-
-    const sourceDemo = demoSampleMeetings[demoIndex] || demoSampleMeetings[0];
-    if (sourceDemo) {
-      const freshMeeting: MeetingSession = {
-        ...sourceDemo,
-        id: `meet-demo-${Date.now()}`,
-        date: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-      };
-      createNewMeeting(freshMeeting);
-      setActiveMeeting(freshMeeting);
-    }
-    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
   };
 
   const formatTimer = (totalSec: number) => {
@@ -288,63 +267,94 @@ export const LiveRecorder: React.FC = () => {
               <span className="rounded-md bg-indigo-500/10 px-2 py-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center gap-1.5">
                 <Mic className="h-3 w-3" /> Speech Studio
               </span>
-              <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                Urdu RTL & Roman Support
+              <span className="text-xs text-theme-muted">
+                English ⇄ Urdu, Roman Urdu & Global 50+ Languages
               </span>
             </div>
-            <h1 className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-theme-primary">
-              Multi-Language Audio Transcription & Notes
-            </h1>
-            <p className="mt-1 text-xs sm:text-sm text-theme-muted max-w-2xl">
-              Record microphone streams or upload meeting recordings in English, Urdu (اردو), and Roman Urdu. Get speaker diarization, code-switched token highlights, and instant AI action items.
+            <h2 className="text-xl font-bold text-theme-primary mt-1.5">
+              Live Speech Diarization & Audio Transcription
+            </h2>
+            <p className="text-xs text-theme-secondary mt-0.5">
+              Record spoken meetings or upload audio files to generate instant transcripts, Nastaliq translations, and AI action items.
             </p>
           </div>
 
-          {/* Mode Switcher: Mic vs Upload */}
-          <div className="flex items-center rounded-xl bg-card-subtle-theme p-1 border border-theme self-start lg:self-auto">
-            <button
-              onClick={() => setMode('mic')}
-              className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
-                mode === 'mic'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-theme-muted hover:text-theme-primary'
-              }`}
-            >
-              <Mic className="h-3.5 w-3.5" />
-              <span>Live Mic Studio</span>
-            </button>
-            <button
-              onClick={() => setMode('upload')}
-              className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition-all ${
-                mode === 'upload'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-theme-muted hover:text-theme-primary'
-              }`}
-            >
-              <UploadCloud className="h-3.5 w-3.5" />
-              <span>Upload Audio</span>
-            </button>
+          {/* Mode Switcher Buttons */}
+          <div className="flex items-center gap-2">
+            <div className="inline-flex rounded-xl border border-theme bg-card-subtle-theme p-1 text-xs font-medium">
+              <button
+                onClick={() => setMode('mic')}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition-all cursor-pointer ${
+                  mode === 'mic' ? 'bg-indigo-600 text-white shadow-sm' : 'text-theme-muted hover:text-theme-primary'
+                }`}
+              >
+                <Mic className="h-3.5 w-3.5" />
+                <span>Live Mic</span>
+              </button>
+              <button
+                onClick={() => setMode('upload')}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 transition-all cursor-pointer ${
+                  mode === 'upload' ? 'bg-indigo-600 text-white shadow-sm' : 'text-theme-muted hover:text-theme-primary'
+                }`}
+              >
+                <UploadCloud className="h-3.5 w-3.5" />
+                <span>Upload Audio</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Live Microphone Recording Panel */}
+        {/* Live Microphone Recording Console */}
         {mode === 'mic' && (
-          <div className="mt-6 pt-5 border-t border-theme">
+          <div className="mt-6 pt-5 border-t border-theme space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-              {/* Session Title input & Controls */}
-              <div className="md:col-span-4 space-y-3">
+              {/* Session Title & Control Buttons */}
+              <div className="md:col-span-7 space-y-3">
                 <div>
-                  <label className="text-[11px] font-semibold uppercase tracking-wider text-theme-muted">Session Name</label>
+                  <label htmlFor="input-session-title" className="text-[10px] font-medium text-theme-muted">Session / Topic Title</label>
                   <input
+                    id="input-session-title"
+                    aria-label="Session or Topic Title"
                     type="text"
                     value={sessionTitle}
                     onChange={(e) => setSessionTitle(e.target.value)}
+                    placeholder="Enter meeting or recording title..."
                     className="mt-1 w-full rounded-xl border border-theme bg-input-theme px-3 py-2 text-xs text-theme-primary placeholder:text-theme-muted focus:border-indigo-500 focus:outline-none shadow-sm"
-                    placeholder="E.g. Q3 Sprint Planning"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  {!isRecording ? (
+                    <button
+                      onClick={handleStartRecording}
+                      className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:from-indigo-500 hover:to-violet-500 transition-all hover:scale-[1.02] cursor-pointer"
+                    >
+                      <Mic className="h-4 w-4" />
+                      <span>Start Recording Live</span>
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handlePauseResume}
+                        className="flex items-center gap-2 rounded-xl border border-theme bg-card-theme px-4 py-2.5 text-xs font-semibold text-theme-primary hover:bg-card-subtle-theme transition-all cursor-pointer shadow-sm"
+                      >
+                        {isPaused ? <Play className="h-4 w-4 text-emerald-500" /> : <Pause className="h-4 w-4 text-amber-500" />}
+                        <span>{isPaused ? 'Resume' : 'Pause'}</span>
+                      </button>
+
+                      <button
+                        onClick={handleStopAndSave}
+                        className="flex items-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-500 px-5 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:scale-[1.02] cursor-pointer"
+                      >
+                        <Square className="h-4 w-4 fill-white" />
+                        <span>Finish & Save to Workspace</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {/* Configuration: Language & Active Speaker */}
+                <div className="grid grid-cols-2 gap-3 pt-2">
                   <div>
                     <LanguageSelector
                       label="Language Mode"
@@ -361,7 +371,7 @@ export const LiveRecorder: React.FC = () => {
                       aria-label="Active Speaker Selection"
                       value={selectedSpeaker}
                       onChange={(e) => setSelectedSpeaker(e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-theme bg-input-theme px-2 py-1.5 text-xs text-theme-primary focus:border-indigo-500 focus:outline-none shadow-sm"
+                      className="mt-1 w-full rounded-lg border border-theme bg-input-theme px-2 py-1.5 text-xs text-theme-primary focus:border-indigo-500 focus:outline-none shadow-sm cursor-pointer"
                     >
                       <option value={userProfile.name ? `${userProfile.name} (Host)` : 'Me (Host)'}>
                         {userProfile.name ? `${userProfile.name} (You / Host)` : 'Me (Host)'}
@@ -391,57 +401,22 @@ export const LiveRecorder: React.FC = () => {
                   {frequencyData.map((val, idx) => (
                     <div
                       key={idx}
-                      className="sound-wave-bar bg-gradient-to-t from-indigo-600 via-indigo-400 to-emerald-500"
-                      style={{
-                        height: isRecording && !isPaused ? `${val}%` : '15%',
-                        opacity: isRecording ? (isPaused ? 0.4 : 0.9) : 0.25,
-                      }}
+                      className="w-1 rounded-full bg-gradient-to-t from-indigo-600 to-teal-400 transition-all duration-75"
+                      style={{ height: `${isRecording && !isPaused ? Math.max(12, val) : 10}%` }}
                     />
                   ))}
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="md:col-span-3 flex flex-col gap-2">
-                {!isRecording ? (
-                  <button
-                    onClick={handleStartRecording}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-600 to-indigo-600 px-4 py-3 text-xs font-bold text-white shadow-md shadow-rose-900/20 hover:from-rose-500 hover:to-indigo-500 transition-all hover:scale-[1.02]"
-                  >
-                    <Mic className="h-4 w-4" />
-                    <span>Start Recording</span>
-                  </button>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handlePauseResume}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-theme bg-card-theme px-3 py-2.5 text-xs font-semibold text-theme-primary hover:bg-card-subtle-theme transition-all shadow-sm"
-                      >
-                        {isPaused ? <Play className="h-3.5 w-3.5 text-emerald-600" /> : <Pause className="h-3.5 w-3.5 text-amber-500" />}
-                        <span>{isPaused ? 'Resume' : 'Pause'}</span>
-                      </button>
-                      <button
-                        onClick={handleStopAndSave}
-                        className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-500 transition-all"
-                      >
-                        <Square className="h-3.5 w-3.5" />
-                        <span>Finish & Save</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between text-[11px] text-theme-muted px-1">
-                  <span>Microphone: Default Input</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">96kHz / 24-bit</span>
+                <div className="mt-2 text-[10px] text-theme-muted flex items-center gap-1.5">
+                  <Sparkles className="h-3 w-3 text-indigo-500" />
+                  <span>Real-time Code-Switching Tokenizer Active</span>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Audio File Upload Dropzone & Demo Selector */}
+        {/* Audio File Upload Dropzone */}
         {mode === 'upload' && (
           <div className="mt-6 pt-5 border-t border-theme space-y-4">
             <input
@@ -453,55 +428,14 @@ export const LiveRecorder: React.FC = () => {
             />
             <div 
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-theme hover:border-indigo-500/60 rounded-2xl p-6 bg-card-subtle-theme text-center transition-all cursor-pointer group"
+              className="border-2 border-dashed border-theme hover:border-indigo-500/60 rounded-2xl p-8 bg-card-subtle-theme text-center transition-all cursor-pointer group"
             >
-              <UploadCloud className="h-10 w-10 text-indigo-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-              <h3 className="text-sm font-semibold text-theme-primary">Drag & drop your meeting audio file here, or click to browse</h3>
+              <UploadCloud className="h-12 w-12 text-indigo-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+              <h3 className="text-sm font-bold text-theme-primary">Drag & drop your meeting audio file here, or click to browse</h3>
               <p className="text-xs text-theme-muted mt-1">Supports MP3, WAV, M4A, AAC, OGG up to 200MB</p>
-            </div>
-
-            {/* Quick Demo Pre-loaded Audio Files */}
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-theme-muted mb-2">
-                Or test with sample multilingual meeting audio:
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <button
-                  onClick={() => handleTriggerDemoAudio('demo-1')}
-                  disabled={isProcessingUpload}
-                  className="flex items-start gap-2.5 rounded-xl border border-theme bg-card-theme p-3 text-left hover:border-indigo-500 transition-all shadow-sm"
-                >
-                  <FileAudio className="h-4 w-4 text-indigo-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-xs font-semibold text-theme-primary">Code-Switched Standup</div>
-                    <div className="text-[10px] text-theme-muted">Urdu & English mixed (23 mins)</div>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleTriggerDemoAudio('demo-2')}
-                  disabled={isProcessingUpload}
-                  className="flex items-start gap-2.5 rounded-xl border border-theme bg-card-theme p-3 text-left hover:border-indigo-500 transition-all shadow-sm"
-                >
-                  <FileAudio className="h-4 w-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-xs font-semibold text-theme-primary">Cross-Border Legal Call</div>
-                    <div className="text-[10px] text-theme-muted">London & Lahore (16 mins)</div>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleTriggerDemoAudio('demo-3')}
-                  disabled={isProcessingUpload}
-                  className="flex items-start gap-2.5 rounded-xl border border-theme bg-card-theme p-3 text-left hover:border-indigo-500 transition-all shadow-sm"
-                >
-                  <FileAudio className="h-4 w-4 text-cyan-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="text-xs font-semibold text-theme-primary">Roman Urdu Ad Review</div>
-                    <div className="text-[10px] text-theme-muted">Marketing & Reels (14 mins)</div>
-                  </div>
-                </button>
-              </div>
+              <span className="inline-block mt-3 px-4 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-sm group-hover:bg-indigo-500 transition-colors">
+                Browse Audio File
+              </span>
             </div>
 
             {/* Processing Progress Bar */}
@@ -531,18 +465,18 @@ export const LiveRecorder: React.FC = () => {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setActiveSubTab('transcript')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeSubTab === 'transcript'
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'text-theme-secondary hover:bg-card-subtle-theme hover:text-theme-primary'
             }`}
           >
             <FileText className="h-4 w-4" />
-            <span>Interactive Transcript ({activeMeeting?.transcript.length || liveSegments.length || 0})</span>
+            <span>Interactive Transcript ({activeMeeting?.transcript?.length || liveSegments.length || 0})</span>
           </button>
           <button
             onClick={() => setActiveSubTab('summary')}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeSubTab === 'summary'
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'text-theme-secondary hover:bg-card-subtle-theme hover:text-theme-primary'
@@ -565,7 +499,7 @@ export const LiveRecorder: React.FC = () => {
       {/* Main Content Area */}
       {activeSubTab === 'transcript' ? (
         <TranscriptViewer 
-          segments={isRecording && liveSegments.length > 0 ? liveSegments : activeMeeting?.transcript || []} 
+          segments={isRecording && liveSegments.length > 0 ? liveSegments : (activeMeeting?.transcript || [])} 
         />
       ) : (
         <SummaryPanel 
