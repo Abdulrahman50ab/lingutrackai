@@ -601,8 +601,7 @@ export const workspaceService = {
         .select()
         .single();
 
-      if (error || !data) throw error;
-      return {
+      const formattedMsg = data ? {
         id: data.id,
         workspaceId: data.workspace_id,
         senderId: data.sender_id,
@@ -617,7 +616,41 @@ export const workspaceService = {
         meetingAttachmentTitle: data.meeting_attachment_title,
         reactions: data.reactions || [],
         createdAt: data.created_at,
+      } : {
+        id: `msg-${Date.now()}`,
+        workspaceId: message.workspaceId,
+        senderId: message.senderId,
+        senderName: message.senderName,
+        senderEmail: message.senderEmail,
+        senderAvatar: message.senderAvatar || '',
+        senderRole: message.senderRole || 'Member',
+        content: message.content,
+        urduTranslation: message.urduTranslation,
+        romanUrduText: message.romanUrduText,
+        meetingAttachmentId: message.meetingAttachmentId,
+        meetingAttachmentTitle: message.meetingAttachmentTitle,
+        reactions: [],
+        createdAt: new Date().toISOString(),
       };
+
+      // Broadcast immediately across all active WebSocket clients
+      try {
+        const chan = supabase.channel(`workspace_chat_${message.workspaceId}`);
+        chan.subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            chan.send({
+              type: 'broadcast',
+              event: 'new_workspace_chat_message',
+              payload: formattedMsg,
+            });
+          }
+        });
+      } catch (broadcastErr) {
+        console.warn('Realtime broadcast notice:', broadcastErr);
+      }
+
+      if (error && !data) throw error;
+      return formattedMsg;
     } catch (err) {
       console.error('Error sending message:', err);
       return null;
@@ -625,12 +658,24 @@ export const workspaceService = {
   },
 
   /**
-   * Subscribe to real-time chat messages
+   * Subscribe to real-time chat messages via Dual-Engine (Broadcast + Postgres Changes)
    */
   subscribeToMessages(workspaceId: string, onNewMessage: (msg: any) => void) {
     if (!supabase || !workspaceId) return { unsubscribe: () => {} };
+    
     const channel = supabase
-      .channel(`workspace_chat_${workspaceId}`)
+      .channel(`workspace_chat_${workspaceId}`, {
+        config: {
+          broadcast: { self: false },
+        }
+      })
+      // 1. High-Speed Direct Broadcast Stream
+      .on('broadcast', { event: 'new_workspace_chat_message' }, (payload) => {
+        if (payload?.payload) {
+          onNewMessage(payload.payload);
+        }
+      })
+      // 2. Database Insert Replication Stream
       .on(
         'postgres_changes',
         {

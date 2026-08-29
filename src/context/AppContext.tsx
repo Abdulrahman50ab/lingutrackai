@@ -463,7 +463,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       refreshWorkspaceData();
     }
   }, [userProfile.email]);
-
   // Load members and messages whenever activeWorkspace changes
   useEffect(() => {
     if (activeWorkspace?.id) {
@@ -473,7 +472,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Subscribe to real-time chat
       const sub = workspaceService.subscribeToMessages(activeWorkspace.id, (newMsg) => {
         setWorkspaceMessages(prev => {
-          if (prev.some(m => m.id === newMsg.id)) return prev;
+          if (prev.some(m => m.id === newMsg.id || (m.senderEmail === newMsg.senderEmail && m.content === newMsg.content && Math.abs(new Date(m.createdAt).getTime() - new Date(newMsg.createdAt).getTime()) < 4000))) {
+            return prev;
+          }
           return [...prev, newMsg];
         });
       });
@@ -519,8 +520,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     if (result) {
-      const updatedMembers = await workspaceService.fetchMembers(activeWorkspace.id);
-      setWorkspaceMembers(updatedMembers);
+      const members = await workspaceService.fetchMembers(activeWorkspace.id);
+      setWorkspaceMembers(members);
       return true;
     }
     return false;
@@ -532,8 +533,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const ok = await workspaceService.removeMember(activeWorkspace.id, memberId);
     if (ok) {
       setWorkspaceMembers(prev => prev.filter(m => m.id !== memberId));
+      return true;
     }
-    return ok;
+    return false;
   };
 
   // Join with Invite Code
@@ -553,9 +555,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return false;
   };
 
-  // Send Chat Message
+  // Send Chat Message with Optimistic Delivery + Dual-Engine Broadcast
   const sendWorkspaceMessage = async (content: string, meetingAttachment?: { id: string; title: string }): Promise<boolean> => {
-    if (!activeWorkspace?.id || !content.trim()) return false;
+    if (!activeWorkspace?.id || (!content.trim() && !meetingAttachment)) return false;
+
+    const optimisticId = `msg-${Date.now()}`;
+    const optimisticMsg: WorkspaceMessage = {
+      id: optimisticId,
+      workspaceId: activeWorkspace.id,
+      senderId: currentUser?.id || `usr-${Date.now()}`,
+      senderName: userProfile.name || 'Team Member',
+      senderEmail: userProfile.email,
+      senderAvatar: userProfile.avatar || '',
+      senderRole: activeWorkspace.ownerEmail === userProfile.email ? 'Owner' : 'Member',
+      content,
+      meetingAttachmentId: meetingAttachment?.id,
+      meetingAttachmentTitle: meetingAttachment?.title,
+      reactions: [],
+      createdAt: new Date().toISOString(),
+    };
+
+    // Immediate UI feedback
+    setWorkspaceMessages(prev => [...prev, optimisticMsg]);
+
     const msg = await workspaceService.sendMessage({
       workspaceId: activeWorkspace.id,
       senderId: currentUser?.id || `usr-${Date.now()}`,
@@ -568,14 +590,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       meetingAttachmentTitle: meetingAttachment?.title,
     });
 
-    if (msg) {
-      setWorkspaceMessages(prev => {
-        if (prev.some(m => m.id === msg.id)) return prev;
-        return [...prev, msg];
-      });
-      return true;
+    if (msg && msg.id !== optimisticId) {
+      setWorkspaceMessages(prev => prev.map(m => m.id === optimisticId ? msg : m));
     }
-    return false;
+    return true;
   };
 
   const loadDemoData = () => {
