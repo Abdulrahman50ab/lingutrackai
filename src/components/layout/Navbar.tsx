@@ -124,6 +124,7 @@ export const Navbar: React.FC = () => {
                 <img
                   src={userProfile.avatar}
                   alt={userProfile.name}
+                  referrerPolicy="no-referrer"
                   className="h-7 w-7 rounded-lg object-cover ring-1 ring-slate-200 dark:ring-slate-700"
                 />
               ) : (

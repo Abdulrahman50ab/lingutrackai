@@ -209,7 +209,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           });
           supabaseService.fetchUserProfile().then(remoteProfile => {
             if (remoteProfile && remoteProfile.email === userEmail) {
-              setUserProfile(remoteProfile);
+              setUserProfile(prev => ({
+                ...prev,
+                ...remoteProfile,
+                // Prioritize valid avatar: remoteProfile avatar or Google OAuth avatar
+                avatar: remoteProfile.avatar || userAvatar || prev.avatar,
+                name: remoteProfile.name || userName,
+              }));
             }
           });
         } else {
