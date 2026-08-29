@@ -119,6 +119,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await authService.signOut();
       setCurrentUser(null);
       setUserProfile(initialUserProfile);
+      setActiveTab('landing');
     } catch (e) {
       console.error('Error logging out:', e);
     }
@@ -136,11 +137,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             email: session.user.email || prev.email,
             name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || prev.name,
           }));
+          setActiveTab('record-upload');
+          // Clean OAuth hash from address bar
+          if (window.location.hash && window.location.hash.includes('access_token')) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
         }
       });
 
       // Subscribe to auth changes
-      const { data: authSubscription } = authService.onAuthStateChange((_event, session) => {
+      const { data: authSubscription } = authService.onAuthStateChange((event, session) => {
         if (session?.user) {
           setCurrentUser(session.user);
           setUserProfile(prev => ({
@@ -148,6 +154,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             email: session.user.email || prev.email,
             name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || prev.name,
           }));
+          if (event === 'SIGNED_IN') {
+            setActiveTab('record-upload');
+            if (window.location.hash && window.location.hash.includes('access_token')) {
+              window.history.replaceState(null, '', window.location.pathname);
+            }
+          }
           supabaseService.fetchMeetings().then(remoteMeetings => {
             if (remoteMeetings && remoteMeetings.length > 0) {
               setMeetings(remoteMeetings);
