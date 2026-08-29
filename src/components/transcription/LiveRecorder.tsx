@@ -29,20 +29,20 @@ const mockLivePhrases = [
 ];
 
 export const LiveRecorder: React.FC = () => {
-  const { createNewMeeting, activeMeeting, setActiveMeeting } = useApp();
+  const { createNewMeeting, activeMeeting, setActiveMeeting, userProfile } = useApp();
 
   const [mode, setMode] = useState<'mic' | 'upload'>('mic');
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | 'auto'>('auto');
-  const [selectedSpeaker, setSelectedSpeaker] = useState('Hamza Farooq (Lead)');
+  const [selectedSpeaker, setSelectedSpeaker] = useState(userProfile.name ? `${userProfile.name} (Host)` : 'Me (Host)');
   const [frequencyData, setFrequencyData] = useState<number[]>(new Array(32).fill(10));
   const [liveSegments, setLiveSegments] = useState<TranscriptSegment[]>([]);
   const [isProcessingUpload, setIsProcessingUpload] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState('');
-  const [sessionTitle, setSessionTitle] = useState('Live Standup & Urdu Localization Review');
+  const [sessionTitle, setSessionTitle] = useState('Live Standup & Audio Recording');
   const [activeSubTab, setActiveSubTab] = useState<'transcript' | 'summary'>('transcript');
 
   const timerRef = useRef<number | null>(null);
@@ -363,10 +363,12 @@ export const LiveRecorder: React.FC = () => {
                       onChange={(e) => setSelectedSpeaker(e.target.value)}
                       className="mt-1 w-full rounded-lg border border-theme bg-input-theme px-2 py-1.5 text-xs text-theme-primary focus:border-indigo-500 focus:outline-none shadow-sm"
                     >
-                      <option value="Hamza Farooq (Lead)">Hamza Farooq</option>
-                      <option value="Salman Ahmed (DevOps)">Salman Ahmed</option>
-                      <option value="Sara Khan (Frontend)">Sara Khan</option>
-                      <option value="David Miller (Product)">David Miller</option>
+                      <option value={userProfile.name ? `${userProfile.name} (Host)` : 'Me (Host)'}>
+                        {userProfile.name ? `${userProfile.name} (You / Host)` : 'Me (Host)'}
+                      </option>
+                      <option value="Auto Diarization">Auto-Detect Speaker (AI Diarization)</option>
+                      <option value="Speaker 2 (Guest)">Speaker 2 (Guest)</option>
+                      <option value="Speaker 3 (Collaborator)">Speaker 3 (Collaborator)</option>
                     </select>
                   </div>
                 </div>
