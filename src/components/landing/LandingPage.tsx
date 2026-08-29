@@ -43,6 +43,13 @@ export const LandingPage: React.FC = () => {
   const [activeFeatureTab, setActiveFeatureTab] = useState<'interpretation' | 'transcription' | 'summary' | 'search'>('interpretation');
   const [selectedRegion, setSelectedRegion] = useState('all');
 
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   // Simulated live audio waveform animation
   useEffect(() => {
     let interval: any;
@@ -135,13 +142,13 @@ export const LandingPage: React.FC = () => {
 
           {/* Center Navigation Links */}
           <nav className="hidden md:flex items-center space-x-6 text-xs font-semibold text-theme-secondary">
-            <a href="#features" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Features</a>
-            <a href="#live-demo" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Live Demo</a>
-            <a href="#languages" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">50+ Languages</a>
-            <a href="#how-it-works" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">How It Works</a>
-            <a href="#security" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Security</a>
-            <a href="#pricing" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Pricing</a>
-            <a href="#faq" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">FAQ</a>
+            <button onClick={() => scrollToSection('features')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Features</button>
+            <button onClick={() => scrollToSection('live-demo')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Live Demo</button>
+            <button onClick={() => scrollToSection('languages')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">50+ Languages</button>
+            <button onClick={() => scrollToSection('how-it-works')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">How It Works</button>
+            <button onClick={() => scrollToSection('security')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Security</button>
+            <button onClick={() => scrollToSection('pricing')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Pricing</button>
+            <button onClick={() => scrollToSection('faq')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">FAQ</button>
           </nav>
 
           {/* Right Action Buttons: Theme Switcher & Auth / Launch App */}

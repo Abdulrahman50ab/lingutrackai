@@ -126,6 +126,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // Global URL hash cleaner to ensure clean address bar (no # or OAuth fragments)
+  useEffect(() => {
+    const cleanUrlHash = () => {
+      if (window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    };
+    cleanUrlHash();
+    window.addEventListener('hashchange', cleanUrlHash);
+    return () => window.removeEventListener('hashchange', cleanUrlHash);
+  }, []);
+
   // Auth state listener and initial session loader
   useEffect(() => {
     if (isSupabaseConfigured) {
@@ -139,9 +151,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || prev.name,
           }));
           setActiveTab('record-upload');
-          // Clean OAuth hash from address bar
-          if (window.location.hash && window.location.hash.includes('access_token')) {
-            window.history.replaceState(null, '', window.location.pathname);
+          if (window.location.hash) {
+            window.history.replaceState(null, '', window.location.pathname + window.location.search);
           }
         }
       });
@@ -157,8 +168,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }));
           if (event === 'SIGNED_IN') {
             setActiveTab('record-upload');
-            if (window.location.hash && window.location.hash.includes('access_token')) {
-              window.history.replaceState(null, '', window.location.pathname);
+            if (window.location.hash) {
+              window.history.replaceState(null, '', window.location.pathname + window.location.search);
             }
           }
           supabaseService.fetchMeetings().then(remoteMeetings => {
