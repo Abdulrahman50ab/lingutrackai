@@ -36,9 +36,9 @@ interface AppContextType {
   isSupabaseConnected: boolean;
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
-  authModalMode: 'signin' | 'signup';
-  setAuthModalMode: (mode: 'signin' | 'signup') => void;
-  openAuthModal: (mode?: 'signin' | 'signup') => void;
+  authModalMode: 'signin' | 'signup' | 'forgot_password';
+  setAuthModalMode: (mode: 'signin' | 'signup' | 'forgot_password') => void;
+  openAuthModal: (mode?: 'signin' | 'signup' | 'forgot_password') => void;
   currentUser: any | null;
   setCurrentUser: (user: any) => void;
   isAuthenticated: boolean;
@@ -117,10 +117,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentAudioTime, setCurrentAudioTime] = useState(0);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
+  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup' | 'forgot_password'>('signin');
   const [currentUser, setCurrentUser] = useState<any | null>(null);
 
-  const openAuthModal = (mode: 'signin' | 'signup' = 'signin') => {
+  const openAuthModal = (mode: 'signin' | 'signup' | 'forgot_password' = 'signin') => {
     setAuthModalMode(mode);
     setIsAuthModalOpen(true);
   };

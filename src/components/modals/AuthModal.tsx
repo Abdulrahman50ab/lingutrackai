@@ -40,6 +40,7 @@ export const AuthModal: React.FC = () => {
   if (!isAuthModalOpen) return null;
 
   const isSignUp = authModalMode === 'signup';
+  const isForgotPassword = authModalMode === 'forgot_password';
 
   const resetForm = () => {
     setEmail('');
@@ -58,6 +59,25 @@ export const AuthModal: React.FC = () => {
     e.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
+
+    // Handle Forgot Password submission
+    if (isForgotPassword) {
+      if (!email) {
+        setErrorMessage('Please enter your registered email address.');
+        return;
+      }
+      setIsLoading(true);
+      try {
+        await authService.resetPassword(email);
+        setSuccessMessage('Password reset link sent! Please check your email inbox.');
+      } catch (err: any) {
+        console.error('Password reset error:', err);
+        setErrorMessage(err?.message || 'Failed to send reset link. Please verify your email.');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
 
     if (!email || !password) {
       setErrorMessage('Please enter both email and password.');
@@ -163,17 +183,56 @@ export const AuthModal: React.FC = () => {
               <BrandLogo size="md" />
             </div>
             <h2 className="text-lg font-bold text-theme-primary tracking-tight">
-              {isSignUp ? 'Create your account' : 'Welcome back'}
+              {isForgotPassword 
+                ? 'Reset your password'
+                : isSignUp 
+                  ? 'Create your account' 
+                  : 'Welcome back'}
             </h2>
             <p className="text-[11px] text-theme-muted">
-              {isSignUp 
-                ? 'Join 10,000+ teams transcribing in 50+ languages'
-                : 'Sign in to access your multilingual meeting archive'}
+              {isForgotPassword
+                ? 'Enter your registered email and we’ll send you a recovery link'
+                : isSignUp 
+                  ? 'Join 10,000+ teams transcribing in 50+ languages'
+                  : 'Sign in to access your multilingual meeting archive'}
             </p>
           </div>
 
-          {/* Toggle Switch Tabs */}
-          <div className="flex p-1 rounded-xl bg-card-subtle-theme border border-theme">
+          {/* Toggle Switch Tabs (Only in Sign In / Sign Up mode) */}
+          {!isForgotPassword ? (
+            <div className="flex p-1 rounded-xl bg-card-subtle-theme border border-theme">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthModalMode('signin');
+                  setErrorMessage(null);
+                  setSuccessMessage(null);
+                }}
+                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  !isSignUp 
+                    ? 'bg-indigo-600 text-white shadow-sm' 
+                    : 'text-theme-secondary hover:text-theme-primary'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthModalMode('signup');
+                  setErrorMessage(null);
+                  setSuccessMessage(null);
+                }}
+                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  isSignUp 
+                    ? 'bg-indigo-600 text-white shadow-sm' 
+                    : 'text-theme-secondary hover:text-theme-primary'
+                }`}
+              >
+                Sign Up
+              </button>
+            </div>
+          ) : (
             <button
               type="button"
               onClick={() => {
@@ -181,30 +240,11 @@ export const AuthModal: React.FC = () => {
                 setErrorMessage(null);
                 setSuccessMessage(null);
               }}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                !isSignUp 
-                  ? 'bg-indigo-600 text-white shadow-sm' 
-                  : 'text-theme-secondary hover:text-theme-primary'
-              }`}
+              className="inline-flex items-center gap-1.5 text-xs text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium cursor-pointer"
             >
-              Sign In
+              <span>← Back to Sign In</span>
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAuthModalMode('signup');
-                setErrorMessage(null);
-                setSuccessMessage(null);
-              }}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                isSignUp 
-                  ? 'bg-indigo-600 text-white shadow-sm' 
-                  : 'text-theme-secondary hover:text-theme-primary'
-              }`}
-            >
-              Sign Up
-            </button>
-          </div>
+          )}
 
           {/* Status Notifications */}
           {errorMessage && (
@@ -221,49 +261,53 @@ export const AuthModal: React.FC = () => {
             </div>
           )}
 
-          {/* Google 1-Click OAuth Button */}
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={isGoogleLoading || isLoading}
-            className="w-full flex items-center justify-center gap-2.5 py-2 px-4 rounded-xl border border-theme bg-card-subtle-theme hover:bg-card-theme hover:border-indigo-500/40 text-theme-primary text-xs font-semibold transition-all shadow-sm group cursor-pointer disabled:opacity-60"
-          >
-            {isGoogleLoading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-500" />
-            ) : (
-              <svg className="h-4 w-4" viewBox="0 0 24 24">
-                <path
-                  fill="#EA4335"
-                  d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 8.9 5 12 5z"
-                />
-                <path
-                  fill="#4285F4"
-                  d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15s.7 5.3 1.9 7.7l3.7-2.9z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.5-2.3-6.4-5.2L1.9 16c1.8 3.7 5.6 7 10.1 7z"
-                />
-              </svg>
-            )}
-            <span>Continue with Google</span>
-          </button>
+          {/* Google 1-Click OAuth Button (Hide on Forgot Password) */}
+          {!isForgotPassword && (
+            <>
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={isGoogleLoading || isLoading}
+                className="w-full flex items-center justify-center gap-2.5 py-2 px-4 rounded-xl border border-theme bg-card-subtle-theme hover:bg-card-theme hover:border-indigo-500/40 text-theme-primary text-xs font-semibold transition-all shadow-sm group cursor-pointer disabled:opacity-60"
+              >
+                {isGoogleLoading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-500" />
+                ) : (
+                  <svg className="h-4 w-4" viewBox="0 0 24 24">
+                    <path
+                      fill="#EA4335"
+                      d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 8.9 5 12 5z"
+                    />
+                    <path
+                      fill="#4285F4"
+                      d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15s.7 5.3 1.9 7.7l3.7-2.9z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.5-2.3-6.4-5.2L1.9 16c1.8 3.7 5.6 7 10.1 7z"
+                    />
+                  </svg>
+                )}
+                <span>Continue with Google</span>
+              </button>
 
-          {/* Divider */}
-          <div className="relative flex items-center justify-center">
-            <div className="w-full border-t border-theme" />
-            <span className="absolute bg-card-theme px-2.5 text-[9px] uppercase font-bold text-theme-muted tracking-wider">
-              or with email
-            </span>
-          </div>
+              {/* Divider */}
+              <div className="relative flex items-center justify-center">
+                <div className="w-full border-t border-theme" />
+                <span className="absolute bg-card-theme px-2.5 text-[9px] uppercase font-bold text-theme-muted tracking-wider">
+                  or with email
+                </span>
+              </div>
+            </>
+          )}
 
           {/* Email & Password Form */}
           <form onSubmit={handleSubmit} className="space-y-3">
-            {isSignUp && (
+            {isSignUp && !isForgotPassword && (
               <div className="space-y-1">
                 <label className="block text-[10px] font-semibold text-theme-secondary">
                   Full Name
@@ -298,36 +342,46 @@ export const AuthModal: React.FC = () => {
               </div>
             </div>
 
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="block text-[10px] font-semibold text-theme-secondary">
-                  Password
-                </label>
-                {!isSignUp && (
-                  <span className="text-[10px] text-indigo-500 hover:underline cursor-pointer">
-                    Forgot password?
-                  </span>
-                )}
+            {!isForgotPassword && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[10px] font-semibold text-theme-secondary">
+                    Password
+                  </label>
+                  {!isSignUp && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthModalMode('forgot_password');
+                        setErrorMessage(null);
+                        setSuccessMessage(null);
+                      }}
+                      className="text-[10px] text-indigo-500 hover:underline cursor-pointer"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-theme-muted" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-9 pr-9 py-1.5 text-xs bg-card-subtle-theme border border-theme rounded-xl text-theme-primary placeholder:text-theme-muted focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-theme-muted hover:text-theme-primary transition-colors cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
               </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-theme-muted" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-9 pr-9 py-1.5 text-xs bg-card-subtle-theme border border-theme rounded-xl text-theme-primary placeholder:text-theme-muted focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(prev => !prev)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-theme-muted hover:text-theme-primary transition-colors cursor-pointer"
-                >
-                  {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                </button>
-              </div>
-            </div>
+            )}
 
             {/* Submit Button */}
             <button
@@ -339,7 +393,13 @@ export const AuthModal: React.FC = () => {
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
                 <>
-                  <span>{isSignUp ? 'Create Free Account' : 'Sign In to Workspace'}</span>
+                  <span>
+                    {isForgotPassword 
+                      ? 'Send Password Reset Link' 
+                      : isSignUp 
+                        ? 'Create Free Account' 
+                        : 'Sign In to Workspace'}
+                  </span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </>
               )}
@@ -358,7 +418,21 @@ export const AuthModal: React.FC = () => {
 
           {/* Bottom Switch Link */}
           <div className="text-center text-[11px] text-theme-muted pb-1">
-            {isSignUp ? (
+            {isForgotPassword ? (
+              <span>
+                Remembered your password?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthModalMode('signin');
+                    setErrorMessage(null);
+                  }}
+                  className="font-semibold text-indigo-500 hover:underline ml-1 cursor-pointer"
+                >
+                  Sign In
+                </button>
+              </span>
+            ) : isSignUp ? (
               <span>
                 Already have an account?{' '}
                 <button

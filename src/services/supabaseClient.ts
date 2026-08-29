@@ -263,6 +263,28 @@ export const authService = {
   },
 
   /**
+   * Send Password Reset Email
+   */
+  async resetPassword(email: string) {
+    if (!supabase) throw new Error('Supabase client is not initialized');
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/`,
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Update Password
+   */
+  async updatePassword(password: string) {
+    if (!supabase) throw new Error('Supabase client is not initialized');
+    const { data, error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
+    return data;
+  },
+
+  /**
    * Listen to auth state changes
    */
   onAuthStateChange(callback: (event: string, session: any) => void) {
