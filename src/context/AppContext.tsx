@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MeetingSession, UserProfile, ActiveTab, ActionItem, ThemeMode } from '../types';
 import { sampleMeetings, demoSampleMeetings, initialUserProfile } from '../data/mockMeetings';
-import { supabaseService, isSupabaseConfigured } from '../services/supabaseClient';
+import { supabaseService, authService, isSupabaseConfigured } from '../services/supabaseClient';
 
 interface AppContextType {
   activeTab: ActiveTab;
@@ -34,6 +34,14 @@ interface AppContextType {
   isPlayingAudio: boolean;
   setIsPlayingAudio: (playing: boolean) => void;
   isSupabaseConnected: boolean;
+  isAuthModalOpen: boolean;
+  setIsAuthModalOpen: (open: boolean) => void;
+  authModalMode: 'signin' | 'signup';
+  setAuthModalMode: (mode: 'signin' | 'signup') => void;
+  openAuthModal: (mode?: 'signin' | 'signup') => void;
+  currentUser: any | null;
+  isAuthenticated: boolean;
+  logout: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -97,6 +105,70 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [currentAudioTime, setCurrentAudioTime] = useState(0);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
+
+  const openAuthModal = (mode: 'signin' | 'signup' = 'signin') => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const logout = async () => {
+    try {
+      await authService.signOut();
+      setCurrentUser(null);
+      setUserProfile(initialUserProfile);
+    } catch (e) {
+      console.error('Error logging out:', e);
+    }
+  };
+
+  // Auth state listener and initial session loader
+  useEffect(() => {
+    if (isSupabaseConfigured) {
+      // Check initial active session
+      authService.getSession().then(session => {
+        if (session?.user) {
+          setCurrentUser(session.user);
+          setUserProfile(prev => ({
+            ...prev,
+            email: session.user.email || prev.email,
+            name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || prev.name,
+          }));
+        }
+      });
+
+      // Subscribe to auth changes
+      const { data: authSubscription } = authService.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          setCurrentUser(session.user);
+          setUserProfile(prev => ({
+            ...prev,
+            email: session.user.email || prev.email,
+            name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || prev.name,
+          }));
+          supabaseService.fetchMeetings().then(remoteMeetings => {
+            if (remoteMeetings && remoteMeetings.length > 0) {
+              setMeetings(remoteMeetings);
+              setActiveMeeting(remoteMeetings[0]);
+            }
+          });
+          supabaseService.fetchUserProfile().then(remoteProfile => {
+            if (remoteProfile) {
+              setUserProfile(remoteProfile);
+            }
+          });
+        } else {
+          setCurrentUser(null);
+        }
+      });
+
+      return () => {
+        authSubscription?.subscription?.unsubscribe();
+      };
+    }
+  }, []);
 
   // Fetch initial data from Supabase if configured
   useEffect(() => {
@@ -295,6 +367,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isPlayingAudio,
         setIsPlayingAudio,
         isSupabaseConnected: isSupabaseConfigured,
+        isAuthModalOpen,
+        setIsAuthModalOpen,
+        authModalMode,
+        setAuthModalMode,
+        openAuthModal,
+        currentUser,
+        isAuthenticated: Boolean(currentUser),
+        logout,
       }}
     >
       {children}

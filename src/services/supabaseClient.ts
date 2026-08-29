@@ -184,3 +184,90 @@ export const supabaseService = {
     }
   }
 };
+
+/**
+ * Supabase Authentication Service
+ */
+export const authService = {
+  /**
+   * Register a new user with Email & Password
+   */
+  async signUp(email: string, password: string, fullName?: string) {
+    if (!supabase) throw new Error('Supabase client is not initialized');
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName || email.split('@')[0],
+        }
+      }
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Sign In with Email & Password
+   */
+  async signInWithPassword(email: string, password: string) {
+    if (!supabase) throw new Error('Supabase client is not initialized');
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Sign In with Google 1-Click OAuth
+   */
+  async signInWithGoogle() {
+    if (!supabase) throw new Error('Supabase client is not initialized');
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      }
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Sign out current user
+   */
+  async signOut() {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  },
+
+  /**
+   * Get current session
+   */
+  async getSession() {
+    if (!supabase) return null;
+    const { data } = await supabase.auth.getSession();
+    return data.session;
+  },
+
+  /**
+   * Get current user
+   */
+  async getCurrentUser() {
+    if (!supabase) return null;
+    const { data } = await supabase.auth.getUser();
+    return data.user;
+  },
+
+  /**
+   * Listen to auth state changes
+   */
+  onAuthStateChange(callback: (event: string, session: any) => void) {
+    if (!supabase) return { data: { subscription: { unsubscribe: () => {} } } };
+    return supabase.auth.onAuthStateChange(callback);
+  }
+};
+

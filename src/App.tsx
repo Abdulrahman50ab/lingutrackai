@@ -9,6 +9,7 @@ import { ActionItemsHub } from './components/actionItems/ActionItemsHub';
 import { TeamWorkspace } from './components/workspace/TeamWorkspace';
 import { SettingsModal } from './components/workspace/SettingsModal';
 import { UpgradeModal } from './components/modals/UpgradeModal';
+import { AuthModal } from './components/modals/AuthModal';
 import { LandingPage } from './components/landing/LandingPage';
 import { Menu, X } from 'lucide-react';
 
@@ -22,6 +23,7 @@ const MainLayout: React.FC = () => {
       <div className="min-h-screen bg-app-theme text-theme-primary">
         <LandingPage />
         <UpgradeModal />
+        <AuthModal />
       </div>
     );
   }
@@ -88,6 +90,7 @@ const MainLayout: React.FC = () => {
 
       {/* Global Modals */}
       <UpgradeModal />
+      <AuthModal />
     </div>
   );
 };
