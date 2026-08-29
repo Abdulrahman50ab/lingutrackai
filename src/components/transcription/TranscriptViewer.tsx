@@ -71,6 +71,22 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({ segments }) 
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  if (!segments || segments.length === 0) {
+    return (
+      <div className="rounded-3xl border border-dashed border-theme bg-card-theme/60 p-12 text-center space-y-4 shadow-sm animate-fadeIn">
+        <div className="mx-auto w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 shadow-inner">
+          <FileAudio className="h-7 w-7" />
+        </div>
+        <div className="space-y-1.5 max-w-md mx-auto">
+          <h3 className="text-base font-bold text-theme-primary">No Audio Transcripts Yet</h3>
+          <p className="text-xs text-theme-muted leading-relaxed">
+            Click <strong className="text-indigo-600 dark:text-indigo-400">"Start Recording"</strong> with your microphone or switch to <strong className="text-indigo-600 dark:text-indigo-400">"Upload Audio"</strong> to start generating real-time speech-to-text, Urdu translations, and AI action items.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const getLanguageBadge = (lang: LanguageCode) => {
     switch (lang) {
       case 'ur':

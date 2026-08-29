@@ -47,9 +47,19 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const STORAGE_KEY_MEETINGS = 'lingutrack_meetings_v1';
-const STORAGE_KEY_PROFILE = 'lingutrack_profile_v1';
+const STORAGE_KEY_MEETINGS = 'lingutrack_meetings_v2';
+const STORAGE_KEY_PROFILE = 'lingutrack_profile_v2';
 const STORAGE_KEY_THEME = 'lingutrack_theme_v1';
+
+// Cleanup any legacy mock cache from earlier versions
+try {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    localStorage.removeItem('lingutrack_meetings_v1');
+    localStorage.removeItem('lingutrack_profile_v1');
+  }
+} catch (e) {
+  // ignore
+}
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('landing');
@@ -72,7 +82,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.error('Error parsing stored meetings', e);
       }
     }
-    return sampleMeetings; // default is []
+    return []; // Clean empty default
   });
 
   const [activeMeeting, setActiveMeeting] = useState<MeetingSession | null>(() => {
@@ -85,7 +95,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.error('Error parsing stored meetings', e);
       }
     }
-    return sampleMeetings[0] || null;
+    return null; // Clean empty default
   });
 
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
