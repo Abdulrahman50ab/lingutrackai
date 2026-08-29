@@ -95,7 +95,7 @@ export const AuthModal: React.FC = () => {
       if (isSignUp) {
         // Sign Up with Supabase
         const result = await authService.signUp(email, password, fullName);
-        const user = result?.user || { id: 'usr-' + Date.now(), email, user_metadata: { full_name: fullName } };
+        const user: any = result?.user || { id: 'usr-' + Date.now(), email, user_metadata: { full_name: fullName } };
         setCurrentUser(user);
         updateUserProfile({ email, name: fullName || email.split('@')[0] });
         setSuccessMessage('Account created successfully! Welcome to LinguTrack AI.');
@@ -106,9 +106,10 @@ export const AuthModal: React.FC = () => {
       } else {
         // Sign In with Supabase
         const result = await authService.signInWithPassword(email, password);
-        const user = result?.user || { id: 'usr-' + Date.now(), email };
+        const user: any = result?.user || { id: 'usr-' + Date.now(), email, user_metadata: {} };
         setCurrentUser(user);
-        updateUserProfile({ email, name: user.user_metadata?.full_name || email.split('@')[0] });
+        const userName = user.user_metadata?.full_name || user.user_metadata?.name || email.split('@')[0];
+        updateUserProfile({ email, name: userName });
         setSuccessMessage('Successfully signed in! Loading your workspace...');
         setTimeout(() => {
           handleClose();
@@ -119,7 +120,7 @@ export const AuthModal: React.FC = () => {
       console.error('Auth error:', err);
       const msg = err?.message || 'Authentication failed. Please try again.';
       if (msg.includes('rate limit') || msg.includes('Failed to fetch') || msg.includes('security purposes')) {
-        const user = { id: 'usr-' + Date.now(), email, user_metadata: { full_name: fullName } };
+        const user: any = { id: 'usr-' + Date.now(), email, user_metadata: { full_name: fullName } };
         setCurrentUser(user);
         updateUserProfile({ email, name: fullName || email.split('@')[0] });
         setSuccessMessage('Session activated. Loading workspace...');
