@@ -135,11 +135,11 @@ export const AuthModal: React.FC = () => {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md transition-all animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-md transition-all animate-fadeIn"
       onClick={handleClose}
     >
       <div 
-        className="relative w-full max-w-md bg-card-theme/95 border border-theme shadow-2xl rounded-3xl overflow-hidden backdrop-blur-xl transition-all duration-300 animate-scaleUp"
+        className="relative w-full max-w-md bg-card-theme/95 border border-theme shadow-2xl rounded-3xl overflow-hidden backdrop-blur-xl max-h-[90vh] flex flex-col transition-all duration-300 animate-scaleUp"
         onClick={e => e.stopPropagation()}
       >
         {/* Top Decorative Ambient Glow */}
@@ -150,22 +150,22 @@ export const AuthModal: React.FC = () => {
         <button
           type="button"
           onClick={handleClose}
-          className="absolute top-4 right-4 p-2 rounded-full text-theme-muted hover:text-theme-primary hover:bg-card-subtle-theme border border-transparent hover:border-theme transition-all z-10"
+          className="absolute top-3.5 right-3.5 p-1.5 rounded-full text-theme-muted hover:text-theme-primary hover:bg-card-subtle-theme border border-transparent hover:border-theme transition-all z-10 cursor-pointer"
           aria-label="Close authentication modal"
         >
           <X className="h-4 w-4" />
         </button>
 
-        <div className="p-6 sm:p-8 space-y-6">
+        <div className="p-5 sm:p-6 space-y-4 overflow-y-auto">
           {/* Header & Brand */}
-          <div className="text-center space-y-2">
-            <div className="flex justify-center mb-1">
+          <div className="text-center space-y-1">
+            <div className="flex justify-center mb-0.5">
               <BrandLogo size="md" />
             </div>
-            <h2 className="text-xl font-bold text-theme-primary tracking-tight">
+            <h2 className="text-lg font-bold text-theme-primary tracking-tight">
               {isSignUp ? 'Create your account' : 'Welcome back'}
             </h2>
-            <p className="text-xs text-theme-muted">
+            <p className="text-[11px] text-theme-muted">
               {isSignUp 
                 ? 'Join 10,000+ teams transcribing in 50+ languages'
                 : 'Sign in to access your multilingual meeting archive'}
@@ -181,7 +181,7 @@ export const AuthModal: React.FC = () => {
                 setErrorMessage(null);
                 setSuccessMessage(null);
               }}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                 !isSignUp 
                   ? 'bg-indigo-600 text-white shadow-sm' 
                   : 'text-theme-secondary hover:text-theme-primary'
@@ -196,7 +196,7 @@ export const AuthModal: React.FC = () => {
                 setErrorMessage(null);
                 setSuccessMessage(null);
               }}
-              className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                 isSignUp 
                   ? 'bg-indigo-600 text-white shadow-sm' 
                   : 'text-theme-secondary hover:text-theme-primary'
@@ -208,16 +208,16 @@ export const AuthModal: React.FC = () => {
 
           {/* Status Notifications */}
           {errorMessage && (
-            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs animate-shake">
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span className="leading-tight">{errorMessage}</span>
+            <div className="flex items-start gap-2 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs animate-shake">
+              <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+              <span className="leading-tight text-[11px]">{errorMessage}</span>
             </div>
           )}
 
           {successMessage && (
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs">
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
-              <span>{successMessage}</span>
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs">
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+              <span className="text-[11px]">{successMessage}</span>
             </div>
           )}
 
@@ -226,10 +226,10 @@ export const AuthModal: React.FC = () => {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={isGoogleLoading || isLoading}
-            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl border border-theme bg-card-subtle-theme hover:bg-card-theme hover:border-indigo-500/40 text-theme-primary text-xs font-semibold transition-all shadow-sm group cursor-pointer disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2.5 py-2 px-4 rounded-xl border border-theme bg-card-subtle-theme hover:bg-card-theme hover:border-indigo-500/40 text-theme-primary text-xs font-semibold transition-all shadow-sm group cursor-pointer disabled:opacity-60"
           >
             {isGoogleLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-500" />
             ) : (
               <svg className="h-4 w-4" viewBox="0 0 24 24">
                 <path
@@ -256,51 +256,51 @@ export const AuthModal: React.FC = () => {
           {/* Divider */}
           <div className="relative flex items-center justify-center">
             <div className="w-full border-t border-theme" />
-            <span className="absolute bg-card-theme px-3 text-[10px] uppercase font-bold text-theme-muted tracking-wider">
+            <span className="absolute bg-card-theme px-2.5 text-[9px] uppercase font-bold text-theme-muted tracking-wider">
               or with email
             </span>
           </div>
 
           {/* Email & Password Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             {isSignUp && (
               <div className="space-y-1">
-                <label className="block text-[11px] font-semibold text-theme-secondary">
+                <label className="block text-[10px] font-semibold text-theme-secondary">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-muted" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-theme-muted" />
                   <input
                     type="text"
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
                     placeholder="e.g. Sarah Khan"
-                    className="w-full pl-9 pr-4 py-2 text-xs bg-card-subtle-theme border border-theme rounded-xl text-theme-primary placeholder:text-theme-muted focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                    className="w-full pl-9 pr-3 py-1.5 text-xs bg-card-subtle-theme border border-theme rounded-xl text-theme-primary placeholder:text-theme-muted focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                   />
                 </div>
               </div>
             )}
 
             <div className="space-y-1">
-              <label className="block text-[11px] font-semibold text-theme-secondary">
+              <label className="block text-[10px] font-semibold text-theme-secondary">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-muted" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-theme-muted" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="name@company.com"
-                  className="w-full pl-9 pr-4 py-2 text-xs bg-card-subtle-theme border border-theme rounded-xl text-theme-primary placeholder:text-theme-muted focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-9 pr-3 py-1.5 text-xs bg-card-subtle-theme border border-theme rounded-xl text-theme-primary placeholder:text-theme-muted focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                 />
               </div>
             </div>
 
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="block text-[11px] font-semibold text-theme-secondary">
+                <label className="block text-[10px] font-semibold text-theme-secondary">
                   Password
                 </label>
                 {!isSignUp && (
@@ -310,19 +310,19 @@ export const AuthModal: React.FC = () => {
                 )}
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-muted" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-theme-muted" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-10 py-2 text-xs bg-card-subtle-theme border border-theme rounded-xl text-theme-primary placeholder:text-theme-muted focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-9 pr-9 py-1.5 text-xs bg-card-subtle-theme border border-theme rounded-xl text-theme-primary placeholder:text-theme-muted focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(prev => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-theme-muted hover:text-theme-primary transition-colors"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-theme-muted hover:text-theme-primary transition-colors cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                 </button>
@@ -333,10 +333,10 @@ export const AuthModal: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading || isGoogleLoading}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white text-xs font-semibold shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all cursor-pointer disabled:opacity-60"
+              className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white text-xs font-semibold shadow-md shadow-indigo-600/20 hover:shadow-indigo-600/30 transition-all cursor-pointer disabled:opacity-60 mt-1"
             >
               {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
                 <>
                   <span>{isSignUp ? 'Create Free Account' : 'Sign In to Workspace'}</span>
@@ -347,17 +347,17 @@ export const AuthModal: React.FC = () => {
           </form>
 
           {/* Cloud Sync & Security Badge */}
-          <div className="flex items-center justify-center gap-2 pt-2 text-[10px] text-theme-muted border-t border-theme">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+          <div className="flex items-center justify-center gap-1.5 pt-1 text-[10px] text-theme-muted border-t border-theme">
+            <ShieldCheck className="h-3 w-3 text-emerald-500" />
             <span>
               {isSupabaseConfigured 
-                ? 'Secured with Supabase Auth & AES-256 Encryption' 
+                ? 'Secured with Supabase Auth & AES-256' 
                 : 'Local Offline Mode Available'}
             </span>
           </div>
 
           {/* Bottom Switch Link */}
-          <div className="text-center text-xs text-theme-muted">
+          <div className="text-center text-[11px] text-theme-muted pb-1">
             {isSignUp ? (
               <span>
                 Already have an account?{' '}
@@ -367,7 +367,7 @@ export const AuthModal: React.FC = () => {
                     setAuthModalMode('signin');
                     setErrorMessage(null);
                   }}
-                  className="font-semibold text-indigo-500 hover:underline ml-1"
+                  className="font-semibold text-indigo-500 hover:underline ml-1 cursor-pointer"
                 >
                   Sign In
                 </button>
@@ -381,7 +381,7 @@ export const AuthModal: React.FC = () => {
                     setAuthModalMode('signup');
                     setErrorMessage(null);
                   }}
-                  className="font-semibold text-indigo-500 hover:underline ml-1"
+                  className="font-semibold text-indigo-500 hover:underline ml-1 cursor-pointer"
                 >
                   Sign Up Free
                 </button>
