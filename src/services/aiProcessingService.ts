@@ -69,7 +69,6 @@ export function detectLanguage(text: string): LanguageCode {
   if (!text || text.trim().length === 0) return 'en';
   
   // Check for Arabic/Urdu/Persian Unicode range (\u0600-\u06FF)
-  const urduCharRegex = /[\u0600-\u06FF]/;
   const englishWords = text.match(/[a-zA-Z]+/g) || [];
   const urduChars = text.match(/[\u0600-\u06FF]/g) || [];
   

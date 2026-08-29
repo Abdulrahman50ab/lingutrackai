@@ -1,14 +1,14 @@
 import { MeetingSession, UserProfile } from '../types';
 
 export const initialUserProfile: UserProfile = {
-  name: 'Hamza Farooq',
-  email: 'hamza.farooq@techpulse.io',
-  role: 'Engineering Lead & Freelancer',
-  organization: 'Apex Remote Global',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  name: 'Workspace User',
+  email: 'user@lingutrack.ai',
+  role: 'Workspace Owner',
+  organization: 'My Organization',
+  avatar: '',
   plan: 'freemium',
-  monthlyMinutesUsed: 18,
-  monthlyMinutesLimit: 30,
+  monthlyMinutesUsed: 0,
+  monthlyMinutesLimit: 60,
   preferredLanguage: 'code-switched',
   defaultSummaryStyle: 'action-focused',
   enableTtsVoiceMode: true,
@@ -16,7 +16,11 @@ export const initialUserProfile: UserProfile = {
   autoSpeakerDiarization: true,
 };
 
-export const sampleMeetings: MeetingSession[] = [
+// Default meetings are empty for clean deployment
+export const sampleMeetings: MeetingSession[] = [];
+
+// Demo meetings available on-demand for optional testing/demo tours
+export const demoSampleMeetings: MeetingSession[] = [
   {
     id: 'meet-101',
     title: 'Sprint Planning & Microservices Refactor',

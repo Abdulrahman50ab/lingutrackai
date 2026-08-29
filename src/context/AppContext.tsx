@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { MeetingSession, UserProfile, ActiveTab, LanguageCode, ActionItem, ThemeMode } from '../types';
-import { sampleMeetings, initialUserProfile } from '../data/mockMeetings';
+import { MeetingSession, UserProfile, ActiveTab, ActionItem, ThemeMode } from '../types';
+import { sampleMeetings, demoSampleMeetings, initialUserProfile } from '../data/mockMeetings';
+import { supabaseService, isSupabaseConfigured } from '../services/supabaseClient';
 
 interface AppContextType {
   activeTab: ActiveTab;
@@ -16,6 +17,8 @@ interface AppContextType {
   toggleStarMeeting: (id: string) => void;
   toggleActionItem: (meetingId: string, actionItemId: string) => void;
   addActionItem: (meetingId: string, actionItem: Omit<ActionItem, 'id'>) => void;
+  loadDemoData: () => void;
+  clearAllData: () => void;
   userProfile: UserProfile;
   updateUserProfile: (updates: Partial<UserProfile>) => void;
   searchQuery: string;
@@ -30,6 +33,7 @@ interface AppContextType {
   setCurrentAudioTime: (time: number) => void;
   isPlayingAudio: boolean;
   setIsPlayingAudio: (playing: boolean) => void;
+  isSupabaseConnected: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -59,10 +63,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.error('Error parsing stored meetings', e);
       }
     }
-    return sampleMeetings;
+    return sampleMeetings; // default is []
   });
 
   const [activeMeeting, setActiveMeeting] = useState<MeetingSession | null>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_MEETINGS);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed[0] || null;
+      } catch (e) {
+        console.error('Error parsing stored meetings', e);
+      }
+    }
     return sampleMeetings[0] || null;
   });
 
@@ -84,6 +97,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [currentAudioTime, setCurrentAudioTime] = useState(0);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
+  // Fetch initial data from Supabase if configured
+  useEffect(() => {
+    if (isSupabaseConfigured) {
+      supabaseService.fetchMeetings().then(remoteMeetings => {
+        if (remoteMeetings && remoteMeetings.length > 0) {
+          setMeetings(remoteMeetings);
+          setActiveMeeting(remoteMeetings[0]);
+        }
+      });
+      supabaseService.fetchUserProfile().then(remoteProfile => {
+        if (remoteProfile) {
+          setUserProfile(remoteProfile);
+        }
+      });
+    }
+  }, []);
 
   // Sync theme to DOM and localStorage
   useEffect(() => {
@@ -116,10 +146,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...prev,
       monthlyMinutesUsed: Math.min(prev.monthlyMinutesLimit, prev.monthlyMinutesUsed + Math.ceil(newMeeting.duration / 60))
     }));
+    if (isSupabaseConfigured) {
+      supabaseService.saveMeeting(newMeeting);
+    }
   };
 
   const updateMeeting = (id: string, updates: Partial<MeetingSession>) => {
-    setMeetings(prev => prev.map(m => (m.id === id ? { ...m, ...updates } : m)));
+    setMeetings(prev => prev.map(m => {
+      if (m.id === id) {
+        const updated = { ...m, ...updates };
+        if (isSupabaseConfigured) {
+          supabaseService.saveMeeting(updated);
+        }
+        return updated;
+      }
+      return m;
+    }));
     if (activeMeeting && activeMeeting.id === id) {
       setActiveMeeting(prev => prev ? { ...prev, ...updates } : null);
     }
@@ -131,10 +173,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const remaining = meetings.filter(m => m.id !== id);
       setActiveMeeting(remaining[0] || null);
     }
+    if (isSupabaseConfigured) {
+      supabaseService.deleteMeeting(id);
+    }
   };
 
   const toggleStarMeeting = (id: string) => {
-    setMeetings(prev => prev.map(m => m.id === id ? { ...m, starred: !m.starred } : m));
+    setMeetings(prev => prev.map(m => {
+      if (m.id === id) {
+        const updated = { ...m, starred: !m.starred };
+        if (isSupabaseConfigured) {
+          supabaseService.saveMeeting(updated);
+        }
+        return updated;
+      }
+      return m;
+    }));
     if (activeMeeting && activeMeeting.id === id) {
       setActiveMeeting(prev => prev ? { ...prev, starred: !prev.starred } : null);
     }
@@ -146,7 +200,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const updatedItems = m.actionItems.map(item => 
         item.id === actionItemId ? { ...item, completed: !item.completed } : item
       );
-      return { ...m, actionItems: updatedItems };
+      const updatedMeeting = { ...m, actionItems: updatedItems };
+      if (isSupabaseConfigured) {
+        supabaseService.saveMeeting(updatedMeeting);
+      }
+      return updatedMeeting;
     }));
 
     if (activeMeeting && activeMeeting.id === meetingId) {
@@ -168,7 +226,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setMeetings(prev => prev.map(m => {
       if (m.id !== meetingId) return m;
-      return { ...m, actionItems: [...m.actionItems, newItem] };
+      const updatedMeeting = { ...m, actionItems: [...m.actionItems, newItem] };
+      if (isSupabaseConfigured) {
+        supabaseService.saveMeeting(updatedMeeting);
+      }
+      return updatedMeeting;
     }));
 
     if (activeMeeting && activeMeeting.id === meetingId) {
@@ -177,7 +239,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateUserProfile = (updates: Partial<UserProfile>) => {
-    setUserProfile(prev => ({ ...prev, ...updates }));
+    setUserProfile(prev => {
+      const updated = { ...prev, ...updates };
+      if (isSupabaseConfigured) {
+        supabaseService.saveUserProfile(updated);
+      }
+      return updated;
+    });
+  };
+
+  const loadDemoData = () => {
+    setMeetings(demoSampleMeetings);
+    setActiveMeeting(demoSampleMeetings[0] || null);
+    localStorage.setItem(STORAGE_KEY_MEETINGS, JSON.stringify(demoSampleMeetings));
+  };
+
+  const clearAllData = () => {
+    setMeetings([]);
+    setActiveMeeting(null);
+    setUserProfile(initialUserProfile);
+    localStorage.removeItem(STORAGE_KEY_MEETINGS);
+    localStorage.removeItem(STORAGE_KEY_PROFILE);
   };
 
   return (
@@ -196,6 +278,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleStarMeeting,
         toggleActionItem,
         addActionItem,
+        loadDemoData,
+        clearAllData,
         userProfile,
         updateUserProfile,
         searchQuery,
@@ -210,6 +294,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentAudioTime,
         isPlayingAudio,
         setIsPlayingAudio,
+        isSupabaseConnected: isSupabaseConfigured,
       }}
     >
       {children}

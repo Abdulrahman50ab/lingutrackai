@@ -25,7 +25,8 @@ export const MeetingArchive: React.FC = () => {
     languageFilter,
     setLanguageFilter,
     tagFilter,
-    setTagFilter
+    setTagFilter,
+    loadDemoData
   } = useApp();
 
   // Filter meetings by query, language, tag
@@ -182,10 +183,34 @@ export const MeetingArchive: React.FC = () => {
       </div>
 
       {/* Meeting Cards Grid */}
-      {filteredMeetings.length === 0 ? (
+      {meetings.length === 0 ? (
+        <div className="rounded-2xl border border-theme bg-card-theme p-12 text-center shadow-sm">
+          <div className="rounded-2xl bg-indigo-500/10 p-4 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 mx-auto w-fit mb-3">
+            <FolderArchive className="h-8 w-8" />
+          </div>
+          <h3 className="text-base font-semibold text-theme-primary">No Recorded Sessions in Archive</h3>
+          <p className="text-xs text-theme-muted mt-1 max-w-sm mx-auto">
+            Your live microphone sessions and uploaded audio notes with full speaker diarization will be stored here.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-5">
+            <button
+              onClick={() => setActiveTab('record-upload')}
+              className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 transition-all"
+            >
+              Start Live Recording / Upload
+            </button>
+            <button
+              onClick={loadDemoData}
+              className="rounded-xl border border-theme bg-card-subtle-theme px-4 py-2 text-xs font-semibold text-theme-secondary hover:text-theme-primary transition-all"
+            >
+              Load Sample Demo Data
+            </button>
+          </div>
+        </div>
+      ) : filteredMeetings.length === 0 ? (
         <div className="rounded-2xl border border-theme bg-card-theme p-12 text-center shadow-sm">
           <Search className="h-10 w-10 text-theme-muted mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-theme-primary">No Meetings Found</h3>
+          <h3 className="text-base font-semibold text-theme-primary">No Matching Meetings Found</h3>
           <p className="text-xs text-theme-muted mt-1">Try adjusting your search terms or filter selections.</p>
         </div>
       ) : (

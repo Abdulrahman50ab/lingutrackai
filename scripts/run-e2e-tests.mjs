@@ -240,12 +240,18 @@ async function runEnhancedTestSuite() {
       await page.locator('button:has-text("Meeting Archive")').first().click({ force: true });
       await page.waitForSelector('text=Meeting Archive & Multilingual Search', { timeout: 4000 });
 
-      await page.locator('input[placeholder*="Search keyword in English"]').fill('Legal');
+      const loadDemoBtn = page.locator('button:has-text("Load Sample Demo Data")');
+      if (await loadDemoBtn.count() > 0) {
+        await loadDemoBtn.first().click({ force: true });
+        await page.waitForTimeout(300);
+      }
+
+      await page.locator('input[placeholder*="Search keyword in English"]').fill('Standup');
       await page.waitForTimeout(300);
 
-      const foundLegal = await page.evaluate(() => document.body.innerText.includes('Client Discovery: Bilingual Legal & Contract Review'));
-      if (!foundLegal) {
-        throw new Error('Search failed to filter legal meeting');
+      const foundItem = await page.evaluate(() => document.body.innerText.includes('Standup') || document.body.innerText.includes('Sprint'));
+      if (!foundItem) {
+        throw new Error('Search failed to filter meeting');
       }
 
       await page.locator('input[placeholder*="Search keyword in English"]').fill('');

@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users2, 
   UserPlus, 
   ShieldCheck, 
   HardDrive, 
   Crown, 
-  MoreVertical,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -19,47 +18,38 @@ interface TeamMember {
   languages: string[];
 }
 
+const STORAGE_KEY_MEMBERS = 'lingutrack_team_members_v1';
+
 export const TeamWorkspace: React.FC = () => {
   const { userProfile, setIsUpgradeModalOpen } = useApp();
 
-  const [members, setMembers] = useState<TeamMember[]>([
-    {
-      id: 'tm-1',
-      name: 'Hamza Farooq',
-      email: 'hamza.farooq@techpulse.io',
-      role: 'Admin',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      status: 'active',
-      languages: ['English', 'Urdu', 'Roman Urdu'],
-    },
-    {
-      id: 'tm-2',
-      name: 'Salman Ahmed',
-      email: 'salman.ahmed@techpulse.io',
-      role: 'Editor',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-      status: 'active',
-      languages: ['English', 'Urdu'],
-    },
-    {
-      id: 'tm-3',
-      name: 'Sara Khan',
-      email: 'sara.k@freelance.org',
-      role: 'Editor',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-      status: 'active',
-      languages: ['English', 'Urdu (Nastaliq)'],
-    },
-    {
-      id: 'tm-4',
-      name: 'David Miller',
-      email: 'david.m@clientapex.co.uk',
-      role: 'Viewer',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-      status: 'active',
-      languages: ['English'],
+  const [members, setMembers] = useState<TeamMember[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_MEMBERS);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error('Error parsing team members', e);
+      }
     }
-  ]);
+    return [
+      {
+        id: 'tm-owner',
+        name: userProfile.name || 'Workspace Owner',
+        email: userProfile.email || 'user@lingutrack.ai',
+        role: 'Admin',
+        avatar: userProfile.avatar || '',
+        status: 'active',
+        languages: ['English', 'Urdu (Nastaliq)', 'Roman Urdu'],
+      }
+    ];
+  });
+
+  // Sync team members to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_MEMBERS, JSON.stringify(members));
+  }, [members]);
 
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -74,7 +64,7 @@ export const TeamWorkspace: React.FC = () => {
       name: inviteEmail.split('@')[0],
       email: inviteEmail,
       role: inviteRole,
-      avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
+      avatar: '',
       status: 'invited',
       languages: ['English', 'Urdu'],
     };
@@ -187,11 +177,17 @@ export const TeamWorkspace: React.FC = () => {
                 <tr key={member.id} className="hover:bg-card-subtle-theme transition-colors">
                   <td className="py-3.5 pl-2">
                     <div className="flex items-center space-x-3">
-                      <img
-                        src={member.avatar}
-                        alt={member.name}
-                        className="h-8 w-8 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700"
-                      />
+                      {member.avatar ? (
+                        <img
+                          src={member.avatar}
+                          alt={member.name}
+                          className="h-8 w-8 rounded-full object-cover ring-1 ring-slate-200 dark:ring-slate-700"
+                        />
+                      ) : (
+                        <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold text-xs ring-1 ring-slate-200 dark:ring-slate-700">
+                          {member.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <div>
                         <div className="font-semibold text-theme-primary flex items-center gap-1.5">
                           {member.name}
@@ -230,9 +226,17 @@ export const TeamWorkspace: React.FC = () => {
                     </span>
                   </td>
                   <td className="py-3.5 pr-2 text-right">
-                    <button className="text-theme-muted hover:text-theme-primary p-1">
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
+                    {member.id !== 'tm-owner' ? (
+                      <button 
+                        onClick={() => setMembers(prev => prev.filter(m => m.id !== member.id))}
+                        className="text-theme-muted hover:text-rose-500 text-xs px-2 py-1 rounded transition-colors"
+                        title="Remove member"
+                      >
+                        Remove
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-theme-muted font-medium pr-2">Owner</span>
+                    )}
                   </td>
                 </tr>
               ))}

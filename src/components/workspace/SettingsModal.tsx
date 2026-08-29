@@ -6,7 +6,10 @@ import {
   Check, 
   User, 
   Lock,
-  Palette
+  Palette,
+  Database,
+  Trash2,
+  RefreshCw
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { LanguageCode } from '../../types';
@@ -14,7 +17,7 @@ import { ThemeSwitcher } from '../common/ThemeSwitcher';
 import { LanguageSelector } from '../common/LanguageSelector';
 
 export const SettingsModal: React.FC = () => {
-  const { userProfile, updateUserProfile } = useApp();
+  const { userProfile, updateUserProfile, loadDemoData, clearAllData, isSupabaseConnected } = useApp();
 
   const [name, setName] = useState(userProfile.name);
   const [organization, setOrganization] = useState(userProfile.organization);
@@ -26,6 +29,7 @@ export const SettingsModal: React.FC = () => {
   const [retentionDays, setRetentionDays] = useState('30');
   const [confidenceThreshold, setConfidenceThreshold] = useState(90);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [dataActionMsg, setDataActionMsg] = useState<string | null>(null);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +45,20 @@ export const SettingsModal: React.FC = () => {
 
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2500);
+  };
+
+  const handleClearData = () => {
+    if (window.confirm('Are you sure you want to clear all recorded meetings and reset the workspace?')) {
+      clearAllData();
+      setDataActionMsg('All workspace data has been cleared.');
+      setTimeout(() => setDataActionMsg(null), 3000);
+    }
+  };
+
+  const handleLoadDemo = () => {
+    loadDemoData();
+    setDataActionMsg('Sample demo meetings loaded.');
+    setTimeout(() => setDataActionMsg(null), 3000);
   };
 
   return (
@@ -224,6 +242,70 @@ export const SettingsModal: React.FC = () => {
                 • <strong>In-Transit:</strong> TLS 1.3 enforced for all WebSockets & REST API endpoints.<br />
                 • <strong>Processing:</strong> Ephemeral server-side compute without unauthorized persistent logs.
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Data & Storage Management */}
+        <div className="rounded-2xl border border-theme bg-card-theme p-5 space-y-4 shadow-sm">
+          <div className="flex items-center justify-between border-b border-theme pb-3">
+            <div className="flex items-center space-x-2">
+              <Database className="h-4 w-4 text-indigo-500" />
+              <h2 className="text-sm font-bold uppercase tracking-wider text-theme-primary">
+                Supabase Database & Storage
+              </h2>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <span className={`h-2 w-2 rounded-full ${isSupabaseConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+              <span className={`text-xs font-semibold ${isSupabaseConnected ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                {isSupabaseConnected ? 'Supabase Connected' : 'Local Storage Mode'}
+              </span>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-theme bg-card-subtle-theme p-3 text-xs space-y-1.5">
+            <div className="font-semibold text-theme-primary">
+              {isSupabaseConnected 
+                ? '⚡ Cloud Sync Active: Meetings and profiles are directly synced with your Supabase PostgreSQL cluster.'
+                : '📦 Offline / Local Mode: Data is saved to browser storage. Add your Supabase credentials to .env to enable cloud sync.'}
+            </div>
+            <p className="text-[11px] text-theme-muted">
+              SQL migrations and table schemas are located in <code className="font-mono text-indigo-500">supabase/schema.sql</code>.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+            <div>
+              <div className="text-xs font-semibold text-theme-primary">Workspace Data Controls</div>
+              <p className="text-[11px] text-theme-muted mt-0.5">
+                Clear all recorded meetings or load sample demo datasets for walkthrough demonstrations.
+              </p>
+              {dataActionMsg && (
+                <div className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
+                  {dataActionMsg}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleLoadDemo}
+                className="flex items-center gap-1.5 rounded-xl border border-theme bg-card-subtle-theme px-3 py-2 text-xs font-semibold text-theme-secondary hover:text-indigo-600 hover:border-indigo-500/40 transition-all shadow-sm"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span>Load Demo Data</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleClearData}
+                className="flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 transition-all shadow-sm"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>Clear All Data</span>
+              </button>
             </div>
           </div>
         </div>

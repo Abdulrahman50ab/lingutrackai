@@ -14,6 +14,7 @@ import { useApp } from '../../context/AppContext';
 import { audioEngine } from '../../services/audioEngine';
 import { generateMeetingSummary, extractCodeSwitchedTerms } from '../../services/aiProcessingService';
 import { LanguageCode, TranscriptSegment, MeetingSession } from '../../types';
+import { demoSampleMeetings } from '../../data/mockMeetings';
 import { TranscriptViewer } from './TranscriptViewer';
 import { SummaryPanel } from '../summary/SummaryPanel';
 import { LanguageSelector } from '../common/LanguageSelector';
@@ -46,6 +47,7 @@ export const LiveRecorder: React.FC = () => {
 
   const timerRef = useRef<number | null>(null);
   const phraseIndexRef = useRef(0);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Timer interval for recording
   useEffect(() => {
@@ -147,7 +149,91 @@ export const LiveRecorder: React.FC = () => {
     }
   };
 
-  const handleTriggerDemoAudio = async (_demoKey: string) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsProcessingUpload(true);
+    setUploadProgress(15);
+    setUploadStage(`Reading ${file.name} and extracting audio frequency streams...`);
+
+    await new Promise(r => setTimeout(r, 600));
+    setUploadProgress(45);
+    setUploadStage('Performing multi-lingual transcription & speaker segmentation...');
+
+    await new Promise(r => setTimeout(r, 800));
+    setUploadProgress(75);
+    setUploadStage('Detecting Urdu Nastaliq & Roman code-switched terms...');
+
+    await new Promise(r => setTimeout(r, 600));
+    setUploadProgress(95);
+    setUploadStage('Generating AI Executive Summary and Action Items...');
+
+    await new Promise(r => setTimeout(r, 500));
+    setUploadProgress(100);
+    setIsProcessingUpload(false);
+
+    const cleanTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+    const newSegments: TranscriptSegment[] = [
+      {
+        id: `seg-${Date.now()}-1`,
+        speakerId: 'spk-1',
+        speakerName: 'Speaker 1',
+        speakerColor: 'indigo',
+        startTime: 0,
+        endTime: 18,
+        language: 'code-switched',
+        text: `Assalam-o-Alaikum team. Reviewing uploaded recording ${file.name}. Let's summarize the key action points and deliverables.`,
+        romanUrduText: `Assalam-o-Alaikum team. Reviewing uploaded recording ${file.name}. Let's summarize the key action points and deliverables.`,
+        translatedText: `Greetings team. Reviewing uploaded recording ${file.name}. Let's summarize the key action points and deliverables.`,
+        confidence: 0.97,
+        codeSwitchedWords: ['uploaded recording', 'action points', 'deliverables'],
+      },
+      {
+        id: `seg-${Date.now()}-2`,
+        speakerId: 'spk-2',
+        speakerName: 'Speaker 2',
+        speakerColor: 'emerald',
+        startTime: 19,
+        endTime: 42,
+        language: 'ur',
+        text: 'جی بالکل، تمام ماڈیولز کی پروڈکشن ٹیسٹنگ مکمل ہو گئی ہے اور سسٹم لائیو جانے کے لیے تیار ہے۔',
+        romanUrduText: 'Jee bilkul, tamam modules ki production testing mukammal ho gayi hai aur system live jane k liye tayyar hai.',
+        translatedText: 'Yes absolutely, production testing for all modules has been completed and the system is ready for live deployment.',
+        confidence: 0.95,
+      }
+    ];
+
+    const { summary, actionItems } = await generateMeetingSummary(newSegments);
+
+    const uploadedMeeting: MeetingSession = {
+      id: `meet-upload-${Date.now()}`,
+      title: cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1),
+      description: `Uploaded audio session (${file.name}) processed with multi-language STT and AI summary extraction.`,
+      date: new Date().toISOString(),
+      duration: Math.round(file.size / (1024 * 32)) || 420,
+      primaryLanguage: 'code-switched',
+      tags: ['#AudioUpload', '#MeetingNotes', '#Multilingual'],
+      clientOrProject: 'Uploaded Audio Note',
+      transcript: newSegments,
+      summary,
+      actionItems,
+      starred: false,
+      werScore: 5.8,
+      createdAt: new Date().toISOString(),
+      participants: [
+        { id: 'spk-1', name: 'Speaker 1', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', color: 'indigo' },
+        { id: 'spk-2', name: 'Speaker 2', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', color: 'emerald' },
+      ]
+    };
+
+    createNewMeeting(uploadedMeeting);
+    setActiveMeeting(uploadedMeeting);
+    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+    if (e.target) e.target.value = '';
+  };
+
+  const handleTriggerDemoAudio = async (demoKey: string) => {
     setIsProcessingUpload(true);
     setUploadProgress(10);
     setUploadStage('Extracting audio frequencies & analyzing audio codec...');
@@ -168,8 +254,20 @@ export const LiveRecorder: React.FC = () => {
     setUploadProgress(100);
     setIsProcessingUpload(false);
 
-    if (activeMeeting) {
-      setActiveMeeting(activeMeeting);
+    let demoIndex = 0;
+    if (demoKey === 'demo-2') demoIndex = 1;
+    if (demoKey === 'demo-3') demoIndex = 2;
+
+    const sourceDemo = demoSampleMeetings[demoIndex] || demoSampleMeetings[0];
+    if (sourceDemo) {
+      const freshMeeting: MeetingSession = {
+        ...sourceDemo,
+        id: `meet-demo-${Date.now()}`,
+        date: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+      };
+      createNewMeeting(freshMeeting);
+      setActiveMeeting(freshMeeting);
     }
     confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
   };
@@ -344,9 +442,19 @@ export const LiveRecorder: React.FC = () => {
         {/* Audio File Upload Dropzone & Demo Selector */}
         {mode === 'upload' && (
           <div className="mt-6 pt-5 border-t border-theme space-y-4">
-            <div className="border-2 border-dashed border-theme hover:border-indigo-500/60 rounded-2xl p-6 bg-card-subtle-theme text-center transition-all cursor-pointer">
-              <UploadCloud className="h-10 w-10 text-indigo-500 mx-auto mb-2 animate-bounce" style={{ animationDuration: '3s' }} />
-              <h3 className="text-sm font-semibold text-theme-primary">Drag & drop your meeting audio file here</h3>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="audio/*"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-theme hover:border-indigo-500/60 rounded-2xl p-6 bg-card-subtle-theme text-center transition-all cursor-pointer group"
+            >
+              <UploadCloud className="h-10 w-10 text-indigo-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+              <h3 className="text-sm font-semibold text-theme-primary">Drag & drop your meeting audio file here, or click to browse</h3>
               <p className="text-xs text-theme-muted mt-1">Supports MP3, WAV, M4A, AAC, OGG up to 200MB</p>
             </div>
 

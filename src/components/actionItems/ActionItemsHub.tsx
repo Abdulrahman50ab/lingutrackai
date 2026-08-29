@@ -147,7 +147,25 @@ export const ActionItemsHub: React.FC = () => {
       </div>
 
       {/* Action Items List */}
-      {filteredItems.length === 0 ? (
+      {allActionItemsWithMeeting.length === 0 ? (
+        <div className="rounded-2xl border border-theme bg-card-theme p-12 text-center shadow-sm">
+          <div className="rounded-2xl bg-emerald-500/10 p-4 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 mx-auto w-fit mb-3">
+            <CheckSquare className="h-8 w-8" />
+          </div>
+          <h3 className="text-base font-semibold text-theme-primary">No Action Items Extracted Yet</h3>
+          <p className="text-xs text-theme-muted mt-1 max-w-sm mx-auto">
+            Action items and tasks with assignees and deadlines are automatically extracted when you record meetings or transcribe audio files.
+          </p>
+          <div className="mt-5">
+            <button
+              onClick={() => setActiveTab('record-upload')}
+              className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 transition-all"
+            >
+              Start Recording / Upload Audio
+            </button>
+          </div>
+        </div>
+      ) : filteredItems.length === 0 ? (
         <div className="rounded-2xl border border-theme bg-card-theme p-12 text-center shadow-sm">
           <CheckCircle2 className="h-10 w-10 text-emerald-500/60 mx-auto mb-3" />
           <h3 className="text-base font-semibold text-theme-primary">All Caught Up!</h3>

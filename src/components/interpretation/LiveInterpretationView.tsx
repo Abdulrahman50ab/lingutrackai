@@ -9,7 +9,6 @@ import {
   Activity, 
   Send, 
   ArrowLeftRight, 
-  Cpu, 
 } from 'lucide-react';
 import { LiveInterpretationTurn } from '../../types';
 import { translateText } from '../../services/aiProcessingService';
@@ -88,34 +87,7 @@ export const LiveInterpretationView: React.FC = () => {
   const leftMeta = getLanguageByCode(leftLang);
   const rightMeta = getLanguageByCode(rightLang);
 
-  const [turns, setTurns] = useState<LiveInterpretationTurn[]>([
-    {
-      id: 'turn-1',
-      speakerName: 'English Speaker (London)',
-      speakerType: 'left',
-      sourceLanguage: 'en',
-      targetLanguage: 'ur',
-      sourceText: 'Good afternoon team. We are checking the response time benchmarks.',
-      translatedText: 'دوپہر بخیر ٹیم۔ ہم رسپانس ٹائم کے معیارات کی جانچ کر رہے ہیں۔',
-      romanUrduText: 'Dopehar bakhair team. Hum response time benchmarks ki janch kar rahe hain.',
-      timestamp: '14:32:10',
-      latencyMs: 1140,
-      confidence: 0.98,
-    },
-    {
-      id: 'turn-2',
-      speakerName: 'Urdu Speaker (Lahore)',
-      speakerType: 'right',
-      sourceLanguage: 'ur',
-      targetLanguage: 'en',
-      sourceText: 'جی بالکل، ڈیٹا بیس کی اصلاح کے بعد اب لیٹنسی 300 ملی سیکنڈ تک آ گئی ہے۔',
-      translatedText: 'Yes absolutely, after database optimization the latency is down to 300 milliseconds.',
-      romanUrduText: 'Jee bilkul, database optimization k baad ab latency 300ms tak aa gayi hai.',
-      timestamp: '14:32:25',
-      latencyMs: 1220,
-      confidence: 0.96,
-    }
-  ]);
+  const [turns, setTurns] = useState<LiveInterpretationTurn[]>([]);
 
   const [inputLeft, setInputLeft] = useState('');
   const [inputRight, setInputRight] = useState('');
@@ -329,7 +301,37 @@ export const LiveInterpretationView: React.FC = () => {
         ref={scrollRef}
         className="flex-1 min-h-0 overflow-y-auto rounded-2xl border border-theme bg-card-theme p-4 space-y-3.5 shadow-sm custom-scrollbar"
       >
-        {turns.map((turn) => {
+        {turns.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center p-8 text-center my-auto min-h-[260px]">
+            <div className="rounded-2xl bg-indigo-500/10 p-4 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 mb-3">
+              <Globe2 className="h-8 w-8" />
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-theme-primary">
+              Live Bidirectional Interpretation Ready
+            </h3>
+            <p className="text-xs text-theme-muted mt-1 max-w-md">
+              Speak using the microphone or type in either speaker panel below to get real-time translated voice and text streams.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-4 max-w-lg">
+              <span className="text-[11px] font-semibold text-theme-muted">Quick test phrases:</span>
+              <button
+                type="button"
+                onClick={() => handleSendTurn('left', 'Hello team, can we review the deployment schedule?')}
+                className="text-[11px] bg-card-subtle-theme hover:bg-indigo-500/10 hover:text-indigo-600 border border-theme rounded-lg px-2.5 py-1 text-theme-secondary transition-all"
+              >
+                &ldquo;Hello team, can we review the deployment?&rdquo;
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendTurn('right', 'جی بالکل، سسٹم لائیو ٹیسٹنگ کے لیے تیار ہے۔')}
+                className="text-[11px] bg-card-subtle-theme hover:bg-emerald-500/10 hover:text-emerald-600 border border-theme rounded-lg px-2.5 py-1 text-theme-secondary transition-all font-urdu"
+              >
+                &ldquo;جی بالکل، سسٹم لائیو ٹیسٹنگ کے لیے تیار ہے۔&rdquo;
+              </button>
+            </div>
+          </div>
+        ) : (
+          turns.map((turn) => {
           const isLeft = turn.speakerType === 'left';
           const sMeta = getLanguageByCode(turn.sourceLanguage);
           const tMeta = getLanguageByCode(turn.targetLanguage);
@@ -453,7 +455,7 @@ export const LiveInterpretationView: React.FC = () => {
               </div>
             </div>
           );
-        })}
+        }))}
       </div>
 
       {/* Streamlined Dual-Speaker Input Dock (Compact Height) */}

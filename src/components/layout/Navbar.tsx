@@ -96,11 +96,17 @@ export const Navbar: React.FC = () => {
           className="flex cursor-pointer items-center gap-1 rounded-xl border border-theme bg-card-theme p-1 hover:border-indigo-400 transition-all shadow-sm ml-0.5"
           title="Settings & Workspace Profile"
         >
-          <img
-            src={userProfile.avatar}
-            alt={userProfile.name}
-            className="h-7 w-7 rounded-lg object-cover ring-1 ring-slate-200 dark:ring-slate-700"
-          />
+          {userProfile.avatar ? (
+            <img
+              src={userProfile.avatar}
+              alt={userProfile.name}
+              className="h-7 w-7 rounded-lg object-cover ring-1 ring-slate-200 dark:ring-slate-700"
+            />
+          ) : (
+            <div className="h-7 w-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
+              {userProfile.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
+            </div>
+          )}
           <ChevronDown className="h-3 w-3 text-theme-muted pr-0.5 hidden sm:block" />
         </button>
       </div>
