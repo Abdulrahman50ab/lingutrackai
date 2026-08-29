@@ -7,19 +7,19 @@ import {
   Building2, 
   MessageSquare, 
   Send, 
-  Link as LinkIcon, 
-  Copy, 
   Check, 
   Trash2, 
   Plus, 
-  Globe, 
   Lock, 
   Sparkles, 
   FileText, 
   RefreshCw,
   HardDrive,
   UserCheck,
-  Share2
+  Share2,
+  Mic,
+  Globe2,
+  User
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import confetti from 'canvas-confetti';
@@ -39,7 +39,7 @@ export const TeamWorkspace: React.FC = () => {
     joinWorkspaceWithCode, 
     sendWorkspaceMessage,
     meetings,
-    refreshWorkspaceData
+    setActiveTab
   } = useApp();
 
   const [activeSubTab, setActiveSubTab] = useState<'chat' | 'members' | 'settings'>('chat');
@@ -77,6 +77,7 @@ export const TeamWorkspace: React.FC = () => {
     }
   }, [workspaceMessages]);
 
+  const isSoloMode = activeWorkspace?.id === 'personal-solo';
   const isOwner = activeWorkspace?.ownerEmail === userProfile.email;
   const isAdminOrOwner = isOwner || workspaceMembers.some(m => m.userEmail === userProfile.email && (m.role === 'Admin' || m.role === 'Owner'));
 
@@ -151,7 +152,7 @@ export const TeamWorkspace: React.FC = () => {
   };
 
   const handleCopyInviteLink = () => {
-    if (!activeWorkspace?.inviteCode) return;
+    if (!activeWorkspace?.inviteCode || isSoloMode) return;
     const inviteUrl = `${window.location.origin}/?join=${activeWorkspace.inviteCode}`;
     navigator.clipboard.writeText(inviteUrl);
     setCopiedInvite(true);
@@ -160,49 +161,55 @@ export const TeamWorkspace: React.FC = () => {
 
   return (
     <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-      {/* Top Workspace Bar & Switcher */}
+      {/* Top Workspace Switcher Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-theme pb-5">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="text-2xl">{activeWorkspace?.icon || '🏢'}</span>
+            <span className="text-2xl">{isSoloMode ? '👤' : (activeWorkspace?.icon || '🏢')}</span>
             <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-theme-primary flex items-center gap-2">
-              {activeWorkspace ? activeWorkspace.name : 'Company & Team Workspace'}
+              {activeWorkspace ? activeWorkspace.name : 'Workspace Hub'}
             </h1>
             {activeWorkspace && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                <Crown className="h-3 w-3 text-amber-500" />
-                <span>{isOwner ? 'Owner' : 'Member'}</span>
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                isSoloMode 
+                  ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                  : isOwner 
+                    ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                    : 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'
+              }`}>
+                {isSoloMode ? <User className="h-3 w-3" /> : <Crown className="h-3 w-3" />}
+                <span>{isSoloMode ? 'Solo Mode' : (isOwner ? 'Workspace Owner' : 'Invited Team Member')}</span>
               </span>
             )}
           </div>
           <p className="text-xs text-theme-muted">
-            {activeWorkspace 
-              ? `${activeWorkspace.companyName || activeWorkspace.name} • Strictly Invite-Only Private Team Space`
-              : 'Create a company workspace or join an existing organization by invite code.'}
+            {isSoloMode 
+              ? 'Private Freelancer Space • Your personal meetings and recordings are completely private.'
+              : `${activeWorkspace?.companyName || activeWorkspace?.name} • Strict Invite-Only Company Team Space`}
           </p>
         </div>
 
-        {/* Workspace Action Controls */}
+        {/* Action Controls & Workspace Switcher */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Workspace Switcher */}
-          {workspaces.length > 1 && (
+          {/* Workspace Switcher Dropdown */}
+          <div className="relative">
             <select
-              value={activeWorkspace?.id || ''}
+              value={activeWorkspace?.id || 'personal-solo'}
               onChange={(e) => {
                 const found = workspaces.find(w => w.id === e.target.value);
                 if (found) setActiveWorkspace(found);
               }}
-              className="px-3 py-2 text-xs rounded-xl border border-theme bg-card-theme text-theme-primary focus:outline-none focus:border-indigo-500"
+              className="px-3 py-2 text-xs font-semibold rounded-xl border border-theme bg-card-theme text-theme-primary focus:outline-none focus:border-indigo-500 shadow-sm cursor-pointer"
             >
               {workspaces.map(w => (
                 <option key={w.id} value={w.id}>
-                  {w.name} ({w.ownerEmail === userProfile.email ? 'Owner' : 'Team'})
+                  {w.id === 'personal-solo' ? '👤 Solo Workspace (Personal)' : `🏢 ${w.name} (${w.ownerEmail === userProfile.email ? 'Owner' : 'Team'})`}
                 </option>
               ))}
             </select>
-          )}
+          </div>
 
-          {activeWorkspace && (
+          {!isSoloMode && activeWorkspace && (
             <button
               type="button"
               onClick={handleCopyInviteLink}
@@ -218,9 +225,10 @@ export const TeamWorkspace: React.FC = () => {
             type="button"
             onClick={() => setShowJoinModal(true)}
             className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border border-theme bg-card-theme hover:bg-card-subtle-theme text-theme-primary transition-all cursor-pointer shadow-sm"
+            title="Join an Organization"
           >
             <UserCheck className="h-3.5 w-3.5 text-emerald-500" />
-            <span>Join Workspace</span>
+            <span>Join Team</span>
           </button>
 
           <button
@@ -234,36 +242,106 @@ export const TeamWorkspace: React.FC = () => {
         </div>
       </div>
 
-      {/* If User Has No Active Workspace */}
-      {!activeWorkspace ? (
-        <div className="rounded-3xl border border-theme bg-card-theme p-8 text-center space-y-5 max-w-xl mx-auto my-8 shadow-xl">
-          <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center mx-auto">
-            <Building2 className="h-8 w-8" />
+      {/* VIEW 1: PERSONAL SOLO WORKSPACE VIEW */}
+      {isSoloMode ? (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Solo Mode Hero Card */}
+          <div className="rounded-3xl border border-theme bg-gradient-to-br from-indigo-500/5 via-card-theme to-emerald-500/5 p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                  <Sparkles className="h-3 w-3" />
+                  <span>Personal Solo Mode Active</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-theme-primary">
+                  Welcome to your Private Workspace, {userProfile.name}!
+                </h2>
+                <p className="text-xs text-theme-muted max-w-xl leading-relaxed">
+                  In Solo Mode, all your recorded meetings, speech transcriptions, and Urdu translations remain completely private to your account.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsUpgradeModalOpen(true)}
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+                >
+                  Change Plan (Free Beta)
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Action Hub */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <div 
+                onClick={() => setActiveTab('record-upload')}
+                className="p-5 rounded-2xl border border-theme bg-card-theme hover:border-indigo-500/60 shadow-sm transition-all cursor-pointer group"
+              >
+                <Mic className="h-8 w-8 text-indigo-500 mb-2 group-hover:scale-110 transition-transform" />
+                <h3 className="text-sm font-bold text-theme-primary">Solo Speech Studio</h3>
+                <p className="text-xs text-theme-muted mt-1">Record or upload personal audio calls.</p>
+              </div>
+
+              <div 
+                onClick={() => setActiveTab('live-interpretation')}
+                className="p-5 rounded-2xl border border-theme bg-card-theme hover:border-emerald-500/60 shadow-sm transition-all cursor-pointer group"
+              >
+                <Globe2 className="h-8 w-8 text-emerald-500 mb-2 group-hover:scale-110 transition-transform" />
+                <h3 className="text-sm font-bold text-theme-primary">Live Interpretation</h3>
+                <p className="text-xs text-theme-muted mt-1">Real-time English ⇄ Urdu speech translation.</p>
+              </div>
+
+              <div 
+                onClick={() => setShowCreateWsModal(true)}
+                className="p-5 rounded-2xl border border-theme bg-card-theme hover:border-violet-500/60 shadow-sm transition-all cursor-pointer group"
+              >
+                <Building2 className="h-8 w-8 text-violet-500 mb-2 group-hover:scale-110 transition-transform" />
+                <h3 className="text-sm font-bold text-theme-primary">Create Company Team</h3>
+                <p className="text-xs text-theme-muted mt-1">Spin up a company workspace & invite teammates.</p>
+              </div>
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <h2 className="text-xl font-bold text-theme-primary">No Active Workspace Found</h2>
-            <p className="text-xs text-theme-muted leading-relaxed">
-              Create a dedicated workspace for your company or agency, invite your team members, and start collaborating with real-time translation & chat.
-            </p>
-          </div>
-          <div className="flex justify-center gap-3 pt-2">
-            <button
-              onClick={() => setShowCreateWsModal(true)}
-              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md cursor-pointer transition-all"
-            >
-              Create Workspace
-            </button>
-            <button
-              onClick={() => setShowJoinModal(true)}
-              className="px-5 py-2.5 rounded-xl border border-theme bg-card-subtle-theme hover:bg-card-theme text-theme-primary text-xs font-semibold cursor-pointer transition-all"
-            >
-              Join via Code
-            </button>
+
+          {/* User's Organization Workspaces Summary */}
+          <div className="rounded-2xl border border-theme bg-card-theme p-5 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-theme pb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-theme-primary">
+                Your Connected Company Workspaces ({workspaces.filter(w => w.id !== 'personal-solo').length})
+              </h3>
+              <button
+                onClick={() => setShowCreateWsModal(true)}
+                className="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+              >
+                + Create Another Workspace
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {workspaces.filter(w => w.id !== 'personal-solo').map(ws => (
+                <div 
+                  key={ws.id} 
+                  onClick={() => setActiveWorkspace(ws)}
+                  className="p-4 rounded-xl border border-theme bg-card-subtle-theme hover:bg-card-theme hover:border-indigo-500 transition-all cursor-pointer flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">🏢</span>
+                    <div>
+                      <h4 className="text-xs font-bold text-theme-primary">{ws.name}</h4>
+                      <p className="text-[11px] text-theme-muted">{ws.companyName || 'Company Team'}</p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
+                    Switch →
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ) : (
-        <>
-          {/* Sub Navigation Tabs: Chat vs Members vs Archive */}
+        /* VIEW 2: COMPANY WORKSPACE (WITH CHAT, INVITES & ARCHIVE) */
+        <div className="space-y-6 animate-fadeIn">
+          {/* Sub Navigation Tabs */}
           <div className="flex items-center justify-between border-b border-theme pb-3">
             <div className="flex items-center space-x-2">
               <button
@@ -299,7 +377,7 @@ export const TeamWorkspace: React.FC = () => {
                 }`}
               >
                 <HardDrive className="h-4 w-4" />
-                <span>Pooled Usage & Security</span>
+                <span>Pooled Usage & Info</span>
               </button>
             </div>
 
@@ -309,7 +387,7 @@ export const TeamWorkspace: React.FC = () => {
                 className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition-all cursor-pointer"
               >
                 <UserPlus className="h-3.5 w-3.5" />
-                <span>Invite Member</span>
+                <span>Invite Teammate</span>
               </button>
             )}
           </div>
@@ -322,7 +400,7 @@ export const TeamWorkspace: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-xs font-bold text-theme-primary">
-                    #{activeWorkspace.name.toLowerCase().replace(/\s+/g, '-')}-general
+                    #{activeWorkspace?.name ? activeWorkspace.name.toLowerCase().replace(/\s+/g, '-') : 'general'}-chat
                   </span>
                   <span className="text-[11px] text-theme-muted">
                     ({workspaceMembers.length} team members connected)
@@ -330,7 +408,7 @@ export const TeamWorkspace: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-theme-muted">
                   <Lock className="h-3 w-3 text-emerald-500" />
-                  <span>End-to-End Encrypted Team Channel</span>
+                  <span>Private Team Encrypted Channel</span>
                 </div>
               </div>
 
@@ -341,7 +419,7 @@ export const TeamWorkspace: React.FC = () => {
                     <div className="w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-600 flex items-center justify-center mx-auto">
                       <MessageSquare className="h-6 w-6" />
                     </div>
-                    <h3 className="text-sm font-bold text-theme-primary">Welcome to #{activeWorkspace.name} Team Chat!</h3>
+                    <h3 className="text-sm font-bold text-theme-primary">Welcome to #{activeWorkspace?.name || 'Team'} Chat!</h3>
                     <p className="text-xs text-theme-muted">
                       No messages yet. Send a message to collaborate with your team in English, Urdu Nastaliq, or Roman Urdu.
                     </p>
@@ -354,7 +432,6 @@ export const TeamWorkspace: React.FC = () => {
                         key={msg.id}
                         className={`flex items-start gap-3 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
                       >
-                        {/* Avatar */}
                         {msg.senderAvatar ? (
                           <img
                             src={msg.senderAvatar}
@@ -368,7 +445,6 @@ export const TeamWorkspace: React.FC = () => {
                           </div>
                         )}
 
-                        {/* Message Bubble */}
                         <div className={`space-y-1 max-w-lg ${isMe ? 'items-end text-right' : 'items-start text-left'}`}>
                           <div className="flex items-center gap-1.5 text-[11px] text-theme-muted">
                             <span className="font-bold text-theme-primary">{msg.senderName}</span>
@@ -390,7 +466,6 @@ export const TeamWorkspace: React.FC = () => {
                           >
                             <p className="whitespace-pre-wrap">{msg.content}</p>
 
-                            {/* Attached Meeting Preview */}
                             {msg.meetingAttachmentTitle && (
                               <div className={`mt-2 p-2 rounded-xl border flex items-center gap-2 text-[11px] ${
                                 isMe ? 'bg-indigo-700/60 border-indigo-400/40 text-white' : 'bg-card-theme border-theme text-theme-primary'
@@ -412,7 +487,6 @@ export const TeamWorkspace: React.FC = () => {
 
               {/* Message Input Box */}
               <form onSubmit={handleSendMessage} className="p-3 border-t border-theme bg-card-subtle-theme/40 space-y-2">
-                {/* Meeting Attachment Pill (if selected) */}
                 {selectedMeetingAttachment && (
                   <div className="flex items-center gap-2 px-3 py-1 bg-indigo-500/10 text-indigo-600 rounded-lg text-xs border border-indigo-500/20 w-fit">
                     <FileText className="h-3 w-3" />
@@ -428,7 +502,6 @@ export const TeamWorkspace: React.FC = () => {
                 )}
 
                 <div className="flex items-center gap-2">
-                  {/* Attach Meeting Button */}
                   {meetings.length > 0 && (
                     <select
                       value={selectedMeetingAttachment}
@@ -476,25 +549,23 @@ export const TeamWorkspace: React.FC = () => {
           {/* TAB 2: INVITE-ONLY TEAM MEMBERS MANAGEMENT */}
           {activeSubTab === 'members' && (
             <div className="space-y-4 animate-fadeIn">
-              {/* Access Control Notice */}
               <div className="p-4 rounded-2xl border border-indigo-500/20 bg-indigo-500/10 flex items-start gap-3 text-xs text-theme-secondary">
                 <ShieldCheck className="h-5 w-5 text-indigo-500 shrink-0 mt-0.5" />
                 <div>
                   <h4 className="font-bold text-theme-primary">Strict Invite-Only Privacy Enforced</h4>
                   <p className="mt-0.5 text-theme-muted">
-                    Only teammates explicitly invited by the workspace Owner (<strong>{activeWorkspace.ownerEmail}</strong>) can view, record, and chat in this workspace.
+                    Only teammates explicitly invited by the workspace Owner (<strong>{activeWorkspace?.ownerEmail}</strong>) can view, record, and chat in this workspace.
                   </p>
                 </div>
               </div>
 
-              {/* Members Table */}
               <div className="rounded-2xl border border-theme bg-card-theme overflow-hidden shadow-sm">
                 <div className="p-4 border-b border-theme flex items-center justify-between">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-theme-primary">
                     Active & Invited Members ({workspaceMembers.length})
                   </h3>
                   <div className="text-xs text-theme-muted font-mono">
-                    Invite Code: <strong>{activeWorkspace.inviteCode}</strong>
+                    Invite Code: <strong>{activeWorkspace?.inviteCode}</strong>
                   </div>
                 </div>
 
@@ -536,7 +607,6 @@ export const TeamWorkspace: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Actions */}
                       {isAdminOrOwner && member.role !== 'Owner' && member.userEmail !== userProfile.email && (
                         <button
                           type="button"
@@ -557,12 +627,11 @@ export const TeamWorkspace: React.FC = () => {
           {/* TAB 3: POOLED USAGE & WORKSPACE SETTINGS */}
           {activeSubTab === 'settings' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
-              {/* Pooled Minutes Card */}
               <div className="rounded-2xl border border-theme bg-card-theme p-5 space-y-4 shadow-sm">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-theme-primary">Pooled Workspace Minutes</h3>
                   <span className="rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-[10px] font-bold text-indigo-600 border border-indigo-500/20 capitalize">
-                    {activeWorkspace.plan} Tier
+                    {userProfile.plan} Tier
                   </span>
                 </div>
                 <div className="space-y-2">
@@ -583,35 +652,34 @@ export const TeamWorkspace: React.FC = () => {
                   onClick={() => setIsUpgradeModalOpen(true)}
                   className="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
                 >
-                  Upgrade Pooled Minutes
+                  Change Plan (Free Beta)
                 </button>
               </div>
 
-              {/* Workspace Details */}
               <div className="rounded-2xl border border-theme bg-card-theme p-5 space-y-3 shadow-sm">
                 <h3 className="text-sm font-bold text-theme-primary">Workspace Information</h3>
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between text-theme-muted">
                     <span>Organization:</span>
-                    <strong className="text-theme-primary">{activeWorkspace.companyName || activeWorkspace.name}</strong>
+                    <strong className="text-theme-primary">{activeWorkspace?.companyName || activeWorkspace?.name}</strong>
                   </div>
                   <div className="flex justify-between text-theme-muted">
                     <span>Owner Contact:</span>
-                    <strong className="text-theme-primary">{activeWorkspace.ownerEmail}</strong>
+                    <strong className="text-theme-primary">{activeWorkspace?.ownerEmail}</strong>
                   </div>
                   <div className="flex justify-between text-theme-muted">
                     <span>Workspace ID:</span>
-                    <span className="font-mono text-theme-secondary">{activeWorkspace.id}</span>
+                    <span className="font-mono text-theme-secondary">{activeWorkspace?.id}</span>
                   </div>
                   <div className="flex justify-between text-theme-muted">
                     <span>Direct Invite Code:</span>
-                    <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">{activeWorkspace.inviteCode}</span>
+                    <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">{activeWorkspace?.inviteCode}</span>
                   </div>
                 </div>
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* CREATE WORKSPACE MODAL */}

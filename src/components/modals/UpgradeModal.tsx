@@ -154,6 +154,21 @@ export const UpgradeModal: React.FC = () => {
     }
   };
 
+  const handleInstantActivatePlan = (plan: PlanDetails) => {
+    setSelectedPlan(plan);
+    updateUserProfile({
+      plan: plan.id,
+      monthlyMinutesLimit: plan.minutesLimit,
+    });
+    const generatedTxn = `FREE-BETA-${Math.random().toString(36).substring(2, 7).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+    setTxnId(generatedTxn);
+    setStep('success');
+
+    try {
+      confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+    } catch {}
+  };
+
   const handleClose = () => {
     setIsUpgradeModalOpen(false);
     setTimeout(() => {
@@ -186,37 +201,16 @@ export const UpgradeModal: React.FC = () => {
           <>
             {/* Modal Header */}
             <div className="text-center space-y-2 max-w-xl mx-auto">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                <Zap className="h-3.5 w-3.5 text-amber-500" />
-                <span>Scale Your Multilingual Collaboration</span>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
+                <span>100% Free Beta Access • All Plans Unlocked</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-theme-primary tracking-tight">
-                Upgrade Your LinguTrack AI Plan
+                Select Your LinguTrack AI Plan
               </h2>
               <p className="text-xs sm:text-sm text-theme-muted">
-                Unlock unlimited English ↔ Urdu real-time interpretation, voice mode synthesis, and collaborative team archives.
+                Switch instantly between Solo Freelancer, Team Workspace, and Enterprise tiers without any charges.
               </p>
-
-              {/* Billing Cycle Switch */}
-              <div className="inline-flex items-center rounded-xl border border-theme bg-card-subtle-theme p-1 text-xs mt-2">
-                <button
-                  onClick={() => setBillingCycle('monthly')}
-                  className={`rounded-lg px-3 py-1.5 font-medium transition-all cursor-pointer ${
-                    billingCycle === 'monthly' ? 'bg-indigo-600 text-white shadow-sm' : 'text-theme-muted hover:text-theme-primary'
-                  }`}
-                >
-                  Monthly Billing
-                </button>
-                <button
-                  onClick={() => setBillingCycle('annual')}
-                  className={`rounded-lg px-3 py-1.5 font-medium transition-all flex items-center gap-1 cursor-pointer ${
-                    billingCycle === 'annual' ? 'bg-indigo-600 text-white shadow-sm' : 'text-theme-muted hover:text-theme-primary'
-                  }`}
-                >
-                  <span>Annual Billing</span>
-                  <span className="rounded bg-emerald-500/20 px-1 py-0.2 text-[9px] font-bold text-emerald-600 dark:text-emerald-400">Save 20%</span>
-                </button>
-              </div>
             </div>
 
             {/* Pricing Tier Cards */}
@@ -224,7 +218,7 @@ export const UpgradeModal: React.FC = () => {
               {PLANS.map((plan) => {
                 const isCurrent = userProfile.plan === plan.id;
                 const isTeam = plan.id === 'team';
-                const price = billingCycle === 'annual' ? plan.annualPrice : plan.monthlyPrice;
+                const originalPrice = billingCycle === 'annual' ? plan.annualPrice : plan.monthlyPrice;
 
                 return (
                   <div 
@@ -247,18 +241,19 @@ export const UpgradeModal: React.FC = () => {
                           {isTeam && <Crown className="h-4 w-4 text-amber-500" />}
                           <span>{plan.name}</span>
                         </h3>
-                        {plan.badge && !isTeam && (
-                          <span className="rounded bg-card-subtle-theme border border-theme px-2 py-0.5 text-[10px] font-semibold text-theme-secondary">
-                            {plan.badge}
-                          </span>
-                        )}
+                        <span className="rounded bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                          Free Access
+                        </span>
                       </div>
 
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-extrabold text-theme-primary">
-                          ${price}
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-xs line-through text-theme-muted">
+                          ${originalPrice}/mo
                         </span>
-                        <span className="text-xs text-theme-muted">/ month</span>
+                        <span className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
+                          $0
+                        </span>
+                        <span className="text-xs text-theme-muted font-medium">/ 100% Free</span>
                       </div>
 
                       <p className="text-xs text-theme-muted min-h-[32px]">
@@ -276,17 +271,17 @@ export const UpgradeModal: React.FC = () => {
                     </div>
 
                     <button
-                      onClick={() => handleSelectPlan(plan)}
+                      onClick={() => handleInstantActivatePlan(plan)}
                       disabled={isCurrent}
                       className={`mt-6 w-full rounded-xl py-2.5 text-xs font-bold transition-all cursor-pointer ${
                         isCurrent
                           ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 cursor-default'
                           : isTeam
                             ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md hover:from-indigo-500 hover:to-violet-500 hover:scale-[1.02]'
-                            : 'bg-card-subtle-theme border border-theme text-theme-primary hover:bg-indigo-600 hover:text-white'
+                            : 'bg-indigo-600 text-white hover:bg-indigo-500'
                       }`}
                     >
-                      {isCurrent ? 'Current Active Plan' : `Select ${plan.name}`}
+                      {isCurrent ? 'Current Active Plan' : `Activate ${plan.name} (Free)`}
                     </button>
                   </div>
                 );
@@ -296,7 +291,7 @@ export const UpgradeModal: React.FC = () => {
             {/* Security Assurance */}
             <div className="flex items-center justify-center gap-2 text-xs text-theme-muted pt-2 border-t border-theme">
               <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              <span>30-Day Money-Back Guarantee • Cancel Anytime • AES-256 Cloud Security</span>
+              <span>Instant Free Activation • Unlocked Quota • Switch Anytime</span>
             </div>
           </>
         )}

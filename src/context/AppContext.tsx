@@ -397,40 +397,63 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
   const [workspaceMessages, setWorkspaceMessages] = useState<WorkspaceMessage[]>([]);
 
-  // Refresh workspace data
+  // Refresh workspace data (Always includes Personal Solo Workspace + Company Workspaces)
   const refreshWorkspaceData = async () => {
-    if (!isSupabaseConfigured || !userProfile.email || userProfile.email === 'user@lingutrack.ai') return;
+    if (!userProfile.email || userProfile.email === 'user@lingutrack.ai') return;
+    
+    const personalWs: CompanyWorkspace = {
+      id: 'personal-solo',
+      name: `${userProfile.name ? userProfile.name.split(' ')[0] : 'My'} Solo Workspace`,
+      companyName: 'Personal / Freelancer Mode',
+      description: 'Private personal workspace for individual transcription without team sharing.',
+      ownerId: currentUser?.id || `usr-${Date.now()}`,
+      ownerEmail: userProfile.email,
+      plan: userProfile.plan,
+      inviteCode: 'SOLO-MODE',
+      icon: '👤',
+      createdAt: new Date().toISOString(),
+    };
+
     try {
-      const list = await workspaceService.fetchWorkspaces(userProfile.email);
-      setWorkspaces(list);
-      if (list.length > 0) {
-        const current = activeWorkspace ? (list.find(w => w.id === activeWorkspace.id) || list[0]) : list[0];
+      if (isSupabaseConfigured) {
+        const remoteList = await workspaceService.fetchWorkspaces(userProfile.email);
+        const combined = [personalWs, ...remoteList];
+        setWorkspaces(combined);
+        
+        const current = activeWorkspace 
+          ? (combined.find(w => w.id === activeWorkspace.id) || combined[0]) 
+          : combined[0];
+        
         setActiveWorkspace(current);
-        const members = await workspaceService.fetchMembers(current.id);
-        setWorkspaceMembers(members);
-        const msgs = await workspaceService.fetchMessages(current.id);
-        setWorkspaceMessages(msgs);
-      } else {
-        // Auto-provision initial private company workspace for the user
-        const initialWs = await workspaceService.createWorkspace({
-          name: `${userProfile.name ? userProfile.name.split(' ')[0] : 'Company'}'s Workspace`,
-          companyName: userProfile.organization || 'My Organization',
-          description: 'Primary private workspace for cross-language collaboration and team meetings.',
-          ownerId: currentUser?.id || `usr-${Date.now()}`,
-          ownerEmail: userProfile.email,
-          ownerName: userProfile.name || 'Workspace Owner',
-          ownerAvatar: userProfile.avatar || '',
-        });
-        if (initialWs) {
-          setWorkspaces([initialWs]);
-          setActiveWorkspace(initialWs);
-          const members = await workspaceService.fetchMembers(initialWs.id);
+
+        if (current.id !== 'personal-solo') {
+          const members = await workspaceService.fetchMembers(current.id);
           setWorkspaceMembers(members);
+          const msgs = await workspaceService.fetchMessages(current.id);
+          setWorkspaceMessages(msgs);
+        } else {
+          setWorkspaceMembers([
+            {
+              id: 'wm-solo',
+              workspaceId: 'personal-solo',
+              userEmail: userProfile.email,
+              userName: userProfile.name || 'Solo User',
+              avatar: userProfile.avatar || '',
+              role: 'Owner',
+              status: 'active',
+              joinedAt: new Date().toISOString()
+            }
+          ]);
           setWorkspaceMessages([]);
         }
+      } else {
+        setWorkspaces([personalWs]);
+        setActiveWorkspace(personalWs);
       }
     } catch (e) {
       console.error('Error loading workspace data:', e);
+      setWorkspaces([personalWs]);
+      setActiveWorkspace(personalWs);
     }
   };
 
