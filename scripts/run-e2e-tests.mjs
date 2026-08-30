@@ -100,6 +100,46 @@ async function runEnhancedTestSuite() {
     });
 
     // ---------------------------------------------------------
+    // 1b. Blog & Technical Insights Showcase
+    // ---------------------------------------------------------
+    await testStep('Blog & Insights', 'Blog Section Grid, Category Filtering & Interactive Reader Modal', async () => {
+      // Check blog section exists
+      const blogSection = page.locator('#blog');
+      await blogSection.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(300);
+
+      // Verify articles rendered
+      const hasFeaturedArticle = await page.evaluate(() => document.body.innerText.includes('Mastering Code-Switching'));
+      if (!hasFeaturedArticle) throw new Error('Featured Urdu Code-Switching article not found');
+
+      // Test category pill filtering
+      await page.locator('#blog button:has-text("Speech AI & STT")').first().click({ force: true });
+      await page.waitForTimeout(200);
+      await page.locator('#blog button:has-text("All")').first().click({ force: true });
+      await page.waitForTimeout(200);
+
+      // Click an article to open the interactive Blog Reader Modal
+      await page.locator('#blog h3:has-text("Mastering Code-Switching")').first().click({ force: true });
+      await page.waitForTimeout(400);
+
+      // Verify modal content
+      const hasModalContent = await page.evaluate(() => document.body.innerText.includes('Key Executive Takeaways') && document.body.innerText.includes('Roman Urdu Transliteration'));
+      if (!hasModalContent) throw new Error('Blog reader modal content failed to load');
+
+      // Test claps / like interaction
+      const clapBtn = page.locator('button:has-text("Claps")').first();
+      if (await clapBtn.count() > 0) {
+        await clapBtn.click({ force: true });
+        await page.waitForTimeout(200);
+      }
+
+      // Close modal
+      await page.locator('button[aria-label="Close modal"]').first().click({ force: true });
+      await page.waitForTimeout(300);
+    });
+
+
+    // ---------------------------------------------------------
     // 2. Accessibility & WCAG 2.1 AA Audit
     // ---------------------------------------------------------
     await testStep('Accessibility', 'Automated WCAG 2.1 AA & ARIA Scan via AxeBuilder', async () => {

@@ -230,7 +230,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               }));
             }
           });
-        } else {
+        } else if (event === 'SIGNED_OUT') {
           setCurrentUser(null);
         }
       });

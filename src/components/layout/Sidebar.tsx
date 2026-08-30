@@ -7,6 +7,7 @@ import {
   Users2, 
   Settings, 
   ShieldCheck, 
+  BookOpen,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { ActiveTab } from '../../types';
@@ -122,6 +123,27 @@ export const Sidebar: React.FC = () => {
 
       {/* Bottom Compliance & Security Badge */}
       <div className="space-y-2.5 pt-4 mt-4 border-t border-theme shrink-0">
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('landing');
+            setTimeout(() => {
+              const el = document.getElementById('blog');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+          }}
+          className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold text-theme-secondary hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-card-subtle-theme border border-dashed border-theme transition-all cursor-pointer shadow-xs"
+          title="Explore 4 Technical Blog Articles & Research"
+        >
+          <div className="flex items-center space-x-2.5">
+            <BookOpen className="h-4 w-4 text-indigo-500" />
+            <span>Blog & Research</span>
+          </div>
+          <span className="text-[10px] rounded-md bg-indigo-500/10 px-1.5 py-0.5 text-indigo-600 dark:text-indigo-400 font-bold border border-indigo-500/20">
+            4 Posts
+          </span>
+        </button>
+
         <div className="rounded-2xl border border-theme bg-card-theme p-3 shadow-sm">
           <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
             <ShieldCheck className="h-4 w-4 shrink-0" />

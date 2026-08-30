@@ -182,3 +182,6 @@ export interface WorkspaceMessage {
   reactions?: Array<{ emoji: string; count: number; users: string[] }>;
   createdAt: string;
 }
+
+export * from './blog';
+

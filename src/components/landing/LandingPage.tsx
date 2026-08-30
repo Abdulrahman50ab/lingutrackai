@@ -2,34 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { 
   Globe2, 
   Mic, 
-  Zap, 
   ShieldCheck, 
   CheckCircle2, 
   ArrowRight, 
   FileText, 
-  Download, 
   Play, 
   Pause, 
   Check, 
   Star, 
   Users2, 
-  ChevronRight, 
   ChevronDown, 
   Activity, 
   Lock, 
   HardDrive, 
   Layers, 
   Languages, 
-  ArrowLeftRight, 
-  Flame, 
   Award,
-  Share2,
-  CheckSquare
+  CheckSquare,
+  BookOpen
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { ThemeSwitcher } from '../common/ThemeSwitcher';
 import { BrandLogo } from '../common/BrandLogo';
-import { WORLD_LANGUAGES, getLanguageByCode } from '../../services/languagesData';
+import { WORLD_LANGUAGES } from '../../services/languagesData';
+import { BlogSection } from '../blog/BlogSection';
 
 export const LandingPage: React.FC = () => {
   const { setActiveTab, setIsUpgradeModalOpen, openAuthModal, isAuthenticated, theme } = useApp();
@@ -148,6 +144,10 @@ export const LandingPage: React.FC = () => {
             <button onClick={() => scrollToSection('how-it-works')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">How It Works</button>
             <button onClick={() => scrollToSection('security')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Security</button>
             <button onClick={() => scrollToSection('pricing')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Pricing</button>
+            <button onClick={() => scrollToSection('blog')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
+              <BookOpen className="h-3.5 w-3.5" />
+              <span>Blog & Insights</span>
+            </button>
             <button onClick={() => scrollToSection('faq')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">FAQ</button>
           </nav>
 
@@ -1050,6 +1050,9 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Engineering & Research Blog Showcase Section (3-4 Articles) */}
+      <BlogSection />
+
       {/* Interactive FAQ Accordion */}
       <section id="faq" className="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div className="text-center space-y-3">
@@ -1155,24 +1158,24 @@ export const LandingPage: React.FC = () => {
               </ul>
             </div>
 
-            {/* Links 2: Languages */}
+            {/* Links 2: Resources & Blog */}
             <div className="space-y-2.5">
-              <div className="font-bold text-theme-primary text-xs uppercase tracking-wider">Languages</div>
+              <div className="font-bold text-theme-primary text-xs uppercase tracking-wider">Resources & Blog</div>
               <ul className="space-y-1.5">
-                <li><span className="hover:text-indigo-600">Urdu (اردو نستعلیق)</span></li>
-                <li><span className="hover:text-indigo-600">Roman Urdu (Latin)</span></li>
-                <li><span className="hover:text-indigo-600">Arabic & Farsi (RTL)</span></li>
-                <li><span className="hover:text-indigo-600">50+ Global Languages</span></li>
+                <li><button onClick={() => scrollToSection('blog')} className="hover:text-indigo-600 cursor-pointer text-left">Urdu Code-Switching Guide</button></li>
+                <li><button onClick={() => scrollToSection('blog')} className="hover:text-indigo-600 cursor-pointer text-left">Sub-Second Live Interpretation</button></li>
+                <li><button onClick={() => scrollToSection('blog')} className="hover:text-indigo-600 cursor-pointer text-left">Meeting Intelligence Playbook</button></li>
+                <li><button onClick={() => scrollToSection('blog')} className="hover:text-indigo-600 cursor-pointer text-left">Zero-Trust Audio Privacy</button></li>
               </ul>
             </div>
 
-            {/* Links 3: Security & Legal */}
+            {/* Links 3: Languages & Security */}
             <div className="space-y-2.5">
-              <div className="font-bold text-theme-primary text-xs uppercase tracking-wider">Security & Legal</div>
+              <div className="font-bold text-theme-primary text-xs uppercase tracking-wider">Languages & Security</div>
               <ul className="space-y-1.5">
+                <li><span className="hover:text-indigo-600">Urdu Nastaliq & Roman Urdu</span></li>
+                <li><span className="hover:text-indigo-600">50+ Global Languages</span></li>
                 <li><span className="hover:text-indigo-600">AES-256 Cloud Security</span></li>
-                <li><span className="hover:text-indigo-600">Privacy Policy</span></li>
-                <li><span className="hover:text-indigo-600">Terms of Service</span></li>
                 <li><span className="hover:text-indigo-600">GDPR & SOC2 Compliance</span></li>
               </ul>
             </div>

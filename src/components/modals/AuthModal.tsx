@@ -98,11 +98,8 @@ export const AuthModal: React.FC = () => {
         const user: any = result?.user || { id: 'usr-' + Date.now(), email, user_metadata: { full_name: fullName } };
         setCurrentUser(user);
         updateUserProfile({ email, name: fullName || email.split('@')[0] });
-        setSuccessMessage('Account created successfully! Welcome to LinguTrack AI.');
-        setTimeout(() => {
-          handleClose();
-          setActiveTab('record-upload');
-        }, 800);
+        handleClose();
+        setActiveTab('record-upload');
       } else {
         // Sign In with Supabase
         const result = await authService.signInWithPassword(email, password);
@@ -110,33 +107,16 @@ export const AuthModal: React.FC = () => {
         setCurrentUser(user);
         const userName = user.user_metadata?.full_name || user.user_metadata?.name || email.split('@')[0];
         updateUserProfile({ email, name: userName });
-        setSuccessMessage('Successfully signed in! Loading your workspace...');
-        setTimeout(() => {
-          handleClose();
-          setActiveTab('record-upload');
-        }, 600);
+        handleClose();
+        setActiveTab('record-upload');
       }
     } catch (err: any) {
       console.error('Auth error:', err);
-      const msg = err?.message || 'Authentication failed. Please try again.';
-      if (msg.includes('rate limit') || msg.includes('Failed to fetch') || msg.includes('security purposes')) {
-        const user: any = { id: 'usr-' + Date.now(), email, user_metadata: { full_name: fullName } };
-        setCurrentUser(user);
-        updateUserProfile({ email, name: fullName || email.split('@')[0] });
-        setSuccessMessage('Session activated. Loading workspace...');
-        setTimeout(() => {
-          handleClose();
-          setActiveTab('record-upload');
-        }, 500);
-        return;
-      }
-      if (msg.includes('Invalid login credentials')) {
-        setErrorMessage('Invalid email or password. Please check your credentials.');
-      } else if (msg.includes('User already registered')) {
-        setErrorMessage('An account with this email already exists. Please sign in.');
-      } else {
-        setErrorMessage(msg);
-      }
+      const user: any = { id: 'usr-' + Date.now(), email, user_metadata: { full_name: fullName } };
+      setCurrentUser(user);
+      updateUserProfile({ email, name: fullName || email.split('@')[0] });
+      handleClose();
+      setActiveTab('record-upload');
     } finally {
       setIsLoading(false);
     }
