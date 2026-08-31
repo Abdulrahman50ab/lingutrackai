@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Globe2, 
   Mic, 
@@ -19,9 +19,7 @@ import {
   Languages, 
   Award,
   CheckSquare,
-  BookOpen,
-  Sparkles,
-  Zap
+  BookOpen
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { ThemeSwitcher } from '../common/ThemeSwitcher';
@@ -208,14 +206,7 @@ export const LandingPage: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
 
-          {/* Floating badge above headline */}
-          <div className="animate-fade-in-up">
-            <span className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-4 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 badge-shine">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>AI-Powered Multilingual Meeting Intelligence</span>
-              <Zap className="h-3.5 w-3.5" />
-            </span>
-          </div>
+
 
           {/* Main Hero Headline — with animated gradient */}
           <div className="max-w-4xl mx-auto space-y-4 animate-fade-in-up animate-delay-100">
