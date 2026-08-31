@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Globe2, 
   Mic, 
@@ -19,7 +19,9 @@ import {
   Languages, 
   Award,
   CheckSquare,
-  BookOpen
+  BookOpen,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { ThemeSwitcher } from '../common/ThemeSwitcher';
@@ -37,6 +39,7 @@ export const LandingPage: React.FC = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [billingPeriod, setBillingPeriod] = useState<'annual' | 'monthly'>('annual');
   const [activeFeatureTab, setActiveFeatureTab] = useState<'interpretation' | 'transcription' | 'summary' | 'search'>('interpretation');
+  const [headerScrolled, setHeaderScrolled] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('all');
 
   const scrollToSection = (id: string) => {
@@ -45,6 +48,13 @@ export const LandingPage: React.FC = () => {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+
+  // Header scroll effect
+  useEffect(() => {
+    const handleScroll = () => setHeaderScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Simulated live audio waveform animation
   useEffect(() => {
@@ -128,27 +138,31 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-app-theme text-theme-primary overflow-x-hidden transition-colors selection:bg-indigo-500 selection:text-white">
-      {/* Top Marketing Navigation */}
-      <header className="sticky top-0 z-50 border-b border-theme bg-card-theme/80 backdrop-blur-xl transition-colors">
+      {/* Top Marketing Navigation — Enhanced with scroll shadow */}
+      <header className={`sticky top-0 z-50 border-b border-theme backdrop-blur-xl transition-all duration-300 ${
+        headerScrolled 
+          ? 'bg-card-theme/90 shadow-lg shadow-black/5' 
+          : 'bg-card-theme/80'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Brand Logo */}
           <div className="cursor-pointer" onClick={() => setActiveTab('landing')}>
             <BrandLogo size="md" animate />
           </div>
 
-          {/* Center Navigation Links */}
+          {/* Center Navigation Links — with animated underlines */}
           <nav className="hidden md:flex items-center space-x-6 text-xs font-semibold text-theme-secondary">
-            <button onClick={() => scrollToSection('features')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Features</button>
-            <button onClick={() => scrollToSection('live-demo')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Live Demo</button>
-            <button onClick={() => scrollToSection('languages')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">50+ Languages</button>
-            <button onClick={() => scrollToSection('how-it-works')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">How It Works</button>
-            <button onClick={() => scrollToSection('security')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Security</button>
-            <button onClick={() => scrollToSection('pricing')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Pricing</button>
-            <button onClick={() => scrollToSection('blog')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
+            <button onClick={() => scrollToSection('features')} className="nav-link-hover hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Features</button>
+            <button onClick={() => scrollToSection('live-demo')} className="nav-link-hover hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Live Demo</button>
+            <button onClick={() => scrollToSection('languages')} className="nav-link-hover hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">50+ Languages</button>
+            <button onClick={() => scrollToSection('how-it-works')} className="nav-link-hover hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">How It Works</button>
+            <button onClick={() => scrollToSection('security')} className="nav-link-hover hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Security</button>
+            <button onClick={() => scrollToSection('pricing')} className="nav-link-hover hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">Pricing</button>
+            <button onClick={() => scrollToSection('blog')} className="nav-link-hover hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
               <BookOpen className="h-3.5 w-3.5" />
               <span>Blog & Insights</span>
             </button>
-            <button onClick={() => scrollToSection('faq')} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">FAQ</button>
+            <button onClick={() => scrollToSection('faq')} className="nav-link-hover hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">FAQ</button>
           </nav>
 
           {/* Right Action Buttons: Theme Switcher & Auth / Launch App */}
@@ -173,7 +187,7 @@ export const LandingPage: React.FC = () => {
                   openAuthModal('signin');
                 }
               }}
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-indigo-500/20 hover:from-indigo-500 hover:to-violet-500 transition-all hover:scale-[1.02] cursor-pointer"
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-indigo-500/20 hover:from-indigo-500 hover:to-violet-500 transition-all hover:scale-[1.02] cursor-pointer animate-pulse-glow"
             >
               <span>{isAuthenticated ? 'Enter Workspace' : 'Launch App'}</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -182,18 +196,32 @@ export const LandingPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section — Enhanced with floating orbs and animated gradient */}
       <section className="relative pt-12 pb-20 sm:pt-16 sm:pb-28 overflow-hidden">
-        {/* Background Ambient Glows */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-indigo-500/15 to-emerald-500/15 blur-[120px] rounded-full pointer-events-none -z-10" />
+        {/* Background Ambient Glows — Multiple floating orbs */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-indigo-500/15 to-emerald-500/15 blur-[120px] rounded-full pointer-events-none -z-10 animate-float-orb" />
+        <div className="absolute top-[15%] left-[10%] w-[300px] h-[300px] bg-gradient-to-br from-violet-500/10 to-pink-500/10 blur-[100px] rounded-full pointer-events-none -z-10 animate-float-orb-reverse" />
+        <div className="absolute bottom-[10%] right-[5%] w-[250px] h-[200px] bg-gradient-to-tl from-emerald-500/10 to-cyan-500/10 blur-[100px] rounded-full pointer-events-none -z-10 animate-float-orb-slow" />
+        
+        {/* Subtle dot grid pattern overlay */}
+        <div className="absolute inset-0 dot-grid-bg opacity-[0.03] pointer-events-none -z-10" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
 
-          {/* Main Hero Headline */}
-          <div className="max-w-4xl mx-auto space-y-4">
+          {/* Floating badge above headline */}
+          <div className="animate-fade-in-up">
+            <span className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-4 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 badge-shine">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>AI-Powered Multilingual Meeting Intelligence</span>
+              <Zap className="h-3.5 w-3.5" />
+            </span>
+          </div>
+
+          {/* Main Hero Headline — with animated gradient */}
+          <div className="max-w-4xl mx-auto space-y-4 animate-fade-in-up animate-delay-100">
             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-theme-primary leading-[1.12]">
               Break Language Barriers in <br className="hidden sm:inline" />
-              <span className="bg-gradient-to-r from-indigo-600 via-violet-500 to-emerald-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-indigo-600 via-violet-500 to-emerald-500 bg-clip-text text-transparent animate-gradient-text">
                 Remote Team Meetings
               </span>
             </h1>
@@ -202,8 +230,8 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Hero Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
+          {/* Hero Action Buttons — with pulse glow animation */}
+          <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2 animate-fade-in-up animate-delay-200">
             <button
               onClick={() => {
                 if (isAuthenticated) {
@@ -212,7 +240,7 @@ export const LandingPage: React.FC = () => {
                   openAuthModal('signup');
                 }
               }}
-              className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-indigo-500/25 hover:from-indigo-500 hover:to-violet-500 transition-all hover:scale-[1.02] cursor-pointer"
+              className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3.5 text-sm font-bold text-white shadow-xl shadow-indigo-500/25 hover:from-indigo-500 hover:to-violet-500 transition-all hover:scale-[1.04] cursor-pointer animate-pulse-glow"
             >
               <Mic className="h-4 w-4" />
               <span>Start Free Transcription</span>
@@ -226,15 +254,15 @@ export const LandingPage: React.FC = () => {
                   openAuthModal('signin');
                 }
               }}
-              className="flex items-center gap-2 rounded-2xl border border-theme bg-card-theme px-6 py-3.5 text-sm font-bold text-theme-primary shadow-sm hover:border-indigo-500 hover:bg-card-subtle-theme transition-all cursor-pointer"
+              className="flex items-center gap-2 rounded-2xl border border-theme bg-card-theme px-6 py-3.5 text-sm font-bold text-theme-primary shadow-sm hover:border-indigo-500 hover:bg-card-subtle-theme transition-all hover:scale-[1.02] cursor-pointer"
             >
               <Globe2 className="h-4 w-4 text-indigo-500" />
               <span>Live Interpretation (EN ↔ UR)</span>
             </button>
           </div>
 
-          {/* Social Proof Trust Badges */}
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-6 text-xs text-theme-muted">
+          {/* Social Proof Trust Badges — stagger animated */}
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-6 text-xs text-theme-muted animate-fade-in-up animate-delay-300">
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
               No Credit Card Required
@@ -368,25 +396,37 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Stats Numbers Bar */}
-      <section className="border-y border-theme bg-card-subtle-theme/60 py-10">
+      {/* Stats Numbers Bar — Glassmorphism cards with hover lift */}
+      <section className="border-y border-theme bg-card-subtle-theme/60 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            <div className="rounded-2xl border border-theme bg-card-theme/80 backdrop-blur-sm p-5 text-center card-hover-lift">
               <div className="text-3xl sm:text-4xl font-extrabold text-indigo-600 dark:text-indigo-400">99.4%</div>
-              <div className="text-xs text-theme-muted font-medium mt-1">Speech Recognition Accuracy</div>
+              <div className="text-xs text-theme-muted font-medium mt-1.5">Speech Recognition Accuracy</div>
+              <div className="mt-2 h-1 rounded-full bg-indigo-500/20 overflow-hidden">
+                <div className="h-full w-[99%] rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600" />
+              </div>
             </div>
-            <div>
+            <div className="rounded-2xl border border-theme bg-card-theme/80 backdrop-blur-sm p-5 text-center card-hover-lift">
               <div className="text-3xl sm:text-4xl font-extrabold text-emerald-600 dark:text-emerald-400">&lt;1.2s</div>
-              <div className="text-xs text-theme-muted font-medium mt-1">Live Interpretation Latency</div>
+              <div className="text-xs text-theme-muted font-medium mt-1.5">Live Interpretation Latency</div>
+              <div className="mt-2 h-1 rounded-full bg-emerald-500/20 overflow-hidden">
+                <div className="h-full w-[88%] rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600" />
+              </div>
             </div>
-            <div>
+            <div className="rounded-2xl border border-theme bg-card-theme/80 backdrop-blur-sm p-5 text-center card-hover-lift">
               <div className="text-3xl sm:text-4xl font-extrabold text-violet-600 dark:text-violet-400">50+</div>
-              <div className="text-xs text-theme-muted font-medium mt-1">World Languages & Regional Scripts</div>
+              <div className="text-xs text-theme-muted font-medium mt-1.5">World Languages & Regional Scripts</div>
+              <div className="mt-2 h-1 rounded-full bg-violet-500/20 overflow-hidden">
+                <div className="h-full w-[75%] rounded-full bg-gradient-to-r from-violet-500 to-violet-600" />
+              </div>
             </div>
-            <div>
+            <div className="rounded-2xl border border-theme bg-card-theme/80 backdrop-blur-sm p-5 text-center card-hover-lift">
               <div className="text-3xl sm:text-4xl font-extrabold text-amber-500">15,000+</div>
-              <div className="text-xs text-theme-muted font-medium mt-1">Meeting Minutes Transcribed</div>
+              <div className="text-xs text-theme-muted font-medium mt-1.5">Meeting Minutes Transcribed</div>
+              <div className="mt-2 h-1 rounded-full bg-amber-500/20 overflow-hidden">
+                <div className="h-full w-[92%] rounded-full bg-gradient-to-r from-amber-400 to-amber-500" />
+              </div>
             </div>
           </div>
         </div>
@@ -715,36 +755,39 @@ export const LandingPage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Step 1 */}
-          <div className="rounded-3xl border border-theme bg-card-theme p-6 space-y-4 relative shadow-sm hover:border-indigo-400/50 transition-all">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-extrabold text-lg border border-indigo-500/20">
+          <div className="rounded-3xl border border-theme bg-card-theme p-6 space-y-4 relative shadow-sm card-hover-lift group">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/15 to-indigo-600/5 text-indigo-600 dark:text-indigo-400 font-extrabold text-lg border border-indigo-500/20 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-indigo-500/20 transition-all duration-300">
               01
             </div>
             <h3 className="text-base font-bold text-theme-primary">Speak or Upload Audio</h3>
             <p className="text-xs text-theme-muted leading-relaxed">
               Use live browser microphone recording with real-time waveform analysis, or drop WAV, MP3, or M4A call recordings.
             </p>
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </div>
 
           {/* Step 2 */}
-          <div className="rounded-3xl border border-theme bg-card-theme p-6 space-y-4 relative shadow-sm hover:border-indigo-400/50 transition-all">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-lg border border-emerald-500/20">
+          <div className="rounded-3xl border border-theme bg-card-theme p-6 space-y-4 relative shadow-sm card-hover-lift group">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/15 to-emerald-600/5 text-emerald-600 dark:text-emerald-400 font-extrabold text-lg border border-emerald-500/20 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-all duration-300">
               02
             </div>
             <h3 className="text-base font-bold text-theme-primary">Neural STT & Interpretation</h3>
             <p className="text-xs text-theme-muted leading-relaxed">
               Our acoustic models transcribe multilingual speech, diarize speakers, and translate across 50+ languages at sub-second speeds.
             </p>
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </div>
 
           {/* Step 3 */}
-          <div className="rounded-3xl border border-theme bg-card-theme p-6 space-y-4 relative shadow-sm hover:border-indigo-400/50 transition-all">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-500/10 text-violet-600 dark:text-violet-400 font-extrabold text-lg border border-violet-500/20">
+          <div className="rounded-3xl border border-theme bg-card-theme p-6 space-y-4 relative shadow-sm card-hover-lift group">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/15 to-violet-600/5 text-violet-600 dark:text-violet-400 font-extrabold text-lg border border-violet-500/20 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-violet-500/20 transition-all duration-300">
               03
             </div>
             <h3 className="text-base font-bold text-theme-primary">Instant AI Notes & PDF</h3>
             <p className="text-xs text-theme-muted leading-relaxed">
               Receive structured executive summaries, action items with assignees, and export to PDF or copy Markdown to your workspace.
             </p>
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-violet-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </div>
         </div>
       </section>
@@ -882,8 +925,8 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Team Workspace Plan (Featured) */}
-          <div className="rounded-3xl border-2 border-indigo-500 bg-card-theme p-6 sm:p-8 flex flex-col justify-between shadow-2xl relative">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-indigo-600 to-emerald-500 px-4 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white shadow-md z-10 pointer-events-none">
+          <div className="rounded-3xl border-2 border-indigo-500 bg-card-theme p-6 sm:p-8 flex flex-col justify-between shadow-2xl relative md:scale-[1.03] hover:scale-[1.05] transition-transform duration-300">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-gradient-to-r from-indigo-600 to-emerald-500 px-4 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white shadow-md z-10 pointer-events-none badge-shine">
               Most Popular
             </div>
 
@@ -993,7 +1036,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="rounded-3xl border border-theme bg-card-theme p-6 space-y-4 shadow-sm">
+            <div className="rounded-3xl border border-theme bg-card-theme p-6 space-y-4 shadow-sm card-hover-lift">
               <div className="flex items-center gap-1 text-amber-400">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="h-4 w-4 fill-amber-400" />
@@ -1011,7 +1054,7 @@ export const LandingPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-theme bg-card-theme p-6 space-y-4 shadow-sm">
+            <div className="rounded-3xl border border-theme bg-card-theme p-6 space-y-4 shadow-sm card-hover-lift">
               <div className="flex items-center gap-1 text-amber-400">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="h-4 w-4 fill-amber-400" />
@@ -1029,7 +1072,7 @@ export const LandingPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-theme bg-card-theme p-6 space-y-4 shadow-sm">
+            <div className="rounded-3xl border border-theme bg-card-theme p-6 space-y-4 shadow-sm card-hover-lift">
               <div className="flex items-center gap-1 text-amber-400">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="h-4 w-4 fill-amber-400" />
@@ -1046,6 +1089,21 @@ export const LandingPage: React.FC = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Scrolling Language Ticker — adds dynamism before blog */}
+      <section className="py-6 border-t border-theme overflow-hidden bg-card-subtle-theme/30">
+        <div className="relative">
+          <div className="flex animate-marquee whitespace-nowrap">
+            {[...WORLD_LANGUAGES.slice(0, 25), ...WORLD_LANGUAGES.slice(0, 25)].map((lang, i) => (
+              <span key={`${lang.code}-${i}`} className="inline-flex items-center gap-1.5 mx-4 text-xs text-theme-muted">
+                <span className="text-lg">{lang.flag}</span>
+                <span className="font-medium">{lang.name.split(' ')[0]}</span>
+                <span className="text-[10px] opacity-60">{lang.nativeName}</span>
+              </span>
+            ))}
           </div>
         </div>
       </section>
@@ -1091,9 +1149,12 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* High-Conversion Bottom CTA Banner */}
+      {/* High-Conversion Bottom CTA Banner — with floating orbs */}
       <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-emerald-900 p-8 sm:p-14 text-center text-white space-y-6 shadow-2xl relative overflow-hidden">
+          {/* CTA ambient background orbs */}
+          <div className="absolute top-0 left-[20%] w-[200px] h-[200px] bg-indigo-500/15 blur-[80px] rounded-full pointer-events-none animate-float-orb" />
+          <div className="absolute bottom-0 right-[15%] w-[180px] h-[180px] bg-emerald-500/15 blur-[80px] rounded-full pointer-events-none animate-float-orb-reverse" />
           <div className="max-w-2xl mx-auto space-y-3">
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
               Ready to Break Language Barriers in Your Remote Team?
